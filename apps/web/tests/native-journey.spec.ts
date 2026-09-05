@@ -5,7 +5,7 @@ import { readFileSync,writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 function setting(name:string){const value=process.env[name];if(!value)throw new Error(name+' is required for the real local API browser journey.');return value;}
 async function login(page:Page,role:'PREPARER'|'REVIEWER'){
- await page.goto(process.env.CLOSEGRAPH_UI_URL??'http://127.0.0.1:24173');
+ await page.goto((process.env.CLOSEGRAPH_UI_URL??'http://127.0.0.1:24173')+'/#reports');
  await page.getByRole('textbox',{name:'Username',exact:true}).fill(setting('CLOSEGRAPH_TEST_'+role+'_USERNAME'));
  await page.getByLabel('Password',{exact:true}).fill(setting('CLOSEGRAPH_TEST_'+role+'_PASSWORD'));
  await page.getByRole('button',{name:'Sign in',exact:true}).click();

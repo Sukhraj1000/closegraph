@@ -87,7 +87,7 @@ class _Session:
 
 class LocalAuth:
     def __init__(self, *, accounts: Iterable[DevAccount] = (), ttl_seconds: int = 3600,
-                 clock: Callable[[], float] = time.monotonic, max_sessions: int = 1024):
+                 clock: Callable[[], float] = time.monotonic, max_sessions: int = 1024, collection_grants=None):
         if type(ttl_seconds) is not int or ttl_seconds <= 0:
             raise ValueError("session TTL must be a positive integer")
         if type(max_sessions) is not int or max_sessions <= 0:
@@ -100,6 +100,7 @@ class LocalAuth:
         self._sessions: dict[str, _Session] = {}
         self._disabled: set[str] = set()
         self._lock = RLock()
+        self._collection_grants = {name: frozenset(tuple(pair) for pair in pairs) for name,pairs in (collection_grants or {}).items()}
         self._dummy_hash = hash_password(secrets.token_urlsafe(32))
 
     @staticmethod
@@ -178,3 +179,19 @@ class LocalAuth:
         with self._lock:
             self.require(actor_id,scope,action)
             yield
+
+
+    def collection_funds(self, actor_id):
+        with self.collection_authorized(actor_id, action='inspect') as grants:
+            return [{'tenant_id':tenant,'fund_id':fund} for tenant,fund in sorted(grants)]
+
+    @contextmanager
+    def collection_authorized(self, actor_id, *, action):
+        """Explicit server-owned fund grants, separate from legacy pack grants."""
+        from .ports import DomainForbidden
+        with self._lock:
+            account=self._accounts.get(actor_id)
+            allowed={'PREPARER':{'inspect','prepare','download'},'REVIEWER':{'inspect','review','download'}}
+            if not self._enabled(account) or action not in allowed[account.role]:
+                raise DomainForbidden()
+            yield self._collection_grants.get(actor_id,frozenset())

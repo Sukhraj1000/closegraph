@@ -2,6 +2,7 @@ import os
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from closegraph.storage.models import Base
+from closegraph.collections import models as collection_models
 
 config = context.config
 if os.environ.get("CLOSEGRAPH_DATABASE_URL"):

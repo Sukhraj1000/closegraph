@@ -12,7 +12,7 @@ def upgrade():
     bind = op.get_bind()
     if bind.dialect.name != "postgresql":
         raise RuntimeError("Reporting persistence requires PostgreSQL")
-    Base.metadata.create_all(bind)
+    Base.metadata.create_all(bind, tables=[Base.metadata.tables[name] for name in ['packs', 'pack_revisions', 'document_versions', 'source_occurrences', 'extraction_observations', 'fact_versions', 'check_results', 'dependency_edges', 'corrections', 'artifacts', 'review_decisions', 'publications', 'processing_requests', 'processing_results', 'audit_events']])
     op.execute("""CREATE FUNCTION closegraph_reject_history_mutation() RETURNS trigger
     LANGUAGE plpgsql AS $$ BEGIN
         RAISE EXCEPTION 'CloseGraph historical records are append-only';
@@ -27,4 +27,4 @@ def downgrade():
     for model in APPEND_ONLY_MODELS:
         op.execute(f"DROP TRIGGER IF EXISTS immutable_history ON {model.__tablename__}")
     op.execute("DROP FUNCTION IF EXISTS closegraph_reject_history_mutation()")
-    Base.metadata.drop_all(op.get_bind())
+    Base.metadata.drop_all(op.get_bind(), tables=[Base.metadata.tables[name] for name in ['packs', 'pack_revisions', 'document_versions', 'source_occurrences', 'extraction_observations', 'fact_versions', 'check_results', 'dependency_edges', 'corrections', 'artifacts', 'review_decisions', 'publications', 'processing_requests', 'processing_results', 'audit_events']])

@@ -2,7 +2,7 @@ import type { ReviewEventInput,ReviewWork } from '../features/packs/ReviewWork';
 import type { Correction, PackSnapshot, Session } from './model';
 import type { ResolutionInput, ReviewInput } from '../features/packs/ReviewDecision';
 export class ApiError extends Error { constructor(public status:number,message:string){super(message);this.name='ApiError';} }
-interface ServerSession { actor:{actor_id:string;role:string}; scopes:{tenant_id:string;fund_id:string;pack_id:string}[];csrf_token:string }
+interface ServerSession { actor:{actor_id:string;role:string}; scopes:{tenant_id:string;fund_id:string;pack_id:string}[];csrf_token:string;collection_funds?:{tenant_id:string;fund_id:string}[] }
 export interface UploadInput {expected_version:number;source_id:string;filename:string;media_type:string;content_base64:string}
 function messageOf(body:unknown):string {
  if(!body||typeof body!=='object')return 'The server could not complete this request.';
@@ -24,7 +24,7 @@ export class ClosegraphApi {
   if(response.status===204)return undefined as T;
   return response.json() as Promise<T>;
  }
- private acceptSession(data:ServerSession):Session {this.csrf=data.csrf_token;return {username:data.actor.actor_id,role:data.actor.role,scopes:data.scopes,csrf_token:data.csrf_token};}
+ private acceptSession(data:ServerSession):Session {this.csrf=data.csrf_token;return {username:data.actor.actor_id,role:data.actor.role,scopes:data.scopes,collection_funds:data.collection_funds,csrf_token:data.csrf_token};}
  async session(){return this.acceptSession(await this.request<ServerSession>('/session'));}
  async login(username:string,password:string){return this.acceptSession(await this.request<ServerSession>('/session/login','POST',{username,password}));}
  async logout(){await this.request('/session/logout','POST',{});this.csrf='';}

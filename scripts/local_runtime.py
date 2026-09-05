@@ -25,7 +25,7 @@ from urllib.request import ProxyHandler, build_opener
 PORTS = {"api": 24180, "ui": 24173, "dagster_web": 24181, "dagster_grpc": 24182}
 ORDER = ("api", "dagster_grpc", "dagster_daemon", "dagster_web", "ui")
 ENV_KEYS = {
-    "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR",
+    "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN",
     "COMPOSE_PROJECT_NAME", "CLOSEGRAPH_POSTGRES_IMAGE", "CLOSEGRAPH_POSTGRES_PORT",
     "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "CLOSEGRAPH_DATABASE_URL",
     "CLOSEGRAPH_PREPARER_PASSWORD", "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR",
@@ -251,7 +251,7 @@ class LocalRuntime:
             environment.update({name: self.config[name] for name in (
                 "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_PREPARER_PASSWORD",
                 "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR")})
-            for name in ("CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR"):
+            for name in ("CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN"):
                 if name in self.config:
                     environment[name] = self.config[name]
         return environment
@@ -270,7 +270,7 @@ class LocalRuntime:
             private_directory(cache)
             writes.append(cache)
         ancestors = {parent for path in reads + writes for parent in path.parents}
-        ports = sorted({*PORTS.values(), int(self.config.get("CLOSEGRAPH_POSTGRES_PORT", "55432"))})
+        ports = sorted({24183, *PORTS.values(), int(self.config.get("CLOSEGRAPH_POSTGRES_PORT", "55432"))})
         network = "\n".join(
             f'(allow network-outbound (remote ip4 "localhost:{port}"))\n'
             f'(allow network-inbound (local ip4 "localhost:{port}"))\n'

@@ -1,0 +1,9 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CollectionsApi, collectionFile } from './api';
+afterEach(()=>vi.restoreAllMocks());
+describe('scoped collection API',()=>{
+ it('sends CSRF and expected revision with explicit edits',async()=>{const fetcher=vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response('{}',{status:200}));await new CollectionsApi('scoped-csrf').edit('collection/a',9,'data-1',[{op:'mark_unresolved',message:'Inspect original'}],'Original differs');expect(fetcher).toHaveBeenCalledWith('/api/collections/collection%2Fa/edits',expect.objectContaining({method:'POST',credentials:'same-origin',headers:expect.objectContaining({'X-CSRF-Token':'scoped-csrf'}),body:JSON.stringify({expected_version:9,dataset_id:'data-1',edits:[{op:'mark_unresolved',message:'Inspect original'}],reason:'Original differs'})}));});
+ it('uses row IDs for issue navigation instead of assuming an index',async()=>{const fetcher=vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response('{}'));await new CollectionsApi('csrf').rows('col','data',0,50,undefined,'row/unknown');expect(fetcher.mock.calls[0][0]).toBe('/api/collections/col/datasets/data/rows?offset=0&limit=50&row_id=row%2Funknown');});
+ it('preserves conflict status for explicit stale handling',async()=>{vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response(JSON.stringify({detail:'Another correction was saved'}),{status:409}));await expect(new CollectionsApi('csrf').accept('col',4,'table')).rejects.toMatchObject({status:409,message:'Another correction was saved'});});
+ it('refuses unsupported formats and oversized files before encoding',async()=>{await expect(collectionFile(new File(['x'],'commands.exe'))).rejects.toThrow('PDF, CSV or XLSX');const file=new File(['x'],'large.csv');Object.defineProperty(file,'size',{value:33*1024*1024});await expect(collectionFile(file)).rejects.toThrow('32 MB');});
+});
