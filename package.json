@@ -2,13 +2,13 @@
   "name": "closegraph",
   "version": "0.0.0",
   "private": true,
-  "description": "OpenSpec specification workspace for source-backed reporting-pack correction and verification. Application not implemented yet.",
+  "description": "Source-backed reporting-pack correction, deterministic verification and independent exact-version release.",
   "engines": {
     "node": ">=20.19.0"
   },
   "scripts": {
     "spec:validate": "OPENSPEC_TELEMETRY=0 openspec validate --all --strict --no-interactive",
-    "spec:status": "OPENSPEC_TELEMETRY=0 openspec status --change verify-corrected-reporting-pack",
+    "spec:status": "OPENSPEC_TELEMETRY=0 openspec list",
     "spec:list": "OPENSPEC_TELEMETRY=0 openspec list",
     "spec:check": "npm run spec:validate && npm run spec:status",
     "loop:test": "python3.12 -m unittest discover -s automation/tests -v",

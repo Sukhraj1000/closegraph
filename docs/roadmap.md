@@ -1,10 +1,10 @@
 # Roadmap: one verified workflow before expansion
 
-This is the phase index. Implementation tasks live only in the active OpenSpec change. No phase is complete yet; project initialisation is not product delivery.
+This is the phase index. Phase 1 has recorded automated technical acceptance in [the acceptance report](verification/mvp-acceptance.md). Its 40-task checklist is archived; no phase-2 change is active.
 
-## Phase 1 — Verify a corrected reporting pack (active MVP)
+## Phase 1 — Verify a corrected reporting pack (implemented MVP)
 
-OpenSpec change: `verify-corrected-reporting-pack`.
+Completed change: [verify-corrected-reporting-pack](../openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack/tasks.md). Five implemented capabilities live in [baseline specs](../openspec/specs/).
 
 Outcome: "The accountant changed a figure. Here is the evidence, here is the effect on the pack, and here are the checks and renewed approval for this exact revision."
 
