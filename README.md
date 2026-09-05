@@ -4,7 +4,7 @@ A correction-and-verification layer for private-fund reporting: **what changed, 
 
 ## Status
 
-Specification workspace only. OpenSpec is initialised; application implementation has not started. There is no running UI/API, live Ylookup integration or production security/compliance claim. All implementation tasks remain unchecked.
+The financial application remains a specification workspace: OpenSpec is initialised, but no financial UI/API or live Ylookup integration is implemented. All 40 product implementation tasks remain unchecked. Repository-local engineering automation is a separate deliverable under `automation/`, built for paused operation; see its [architecture](docs/engineering/architecture.md), [activation gates](docs/engineering/activation.md) and [verification report](docs/verification/engineering-automation.md). No production security/compliance claim is made.
 
 - **MVP / use case 1:** verify a corrected reporting pack, from source-backed correction through affected-output checks to exact-version independent approval and download.
 - **Next / use case 2:** missing-evidence requests, ownership and deadline escalation, only after the MVP acceptance gate passes.
@@ -51,7 +51,27 @@ The MVP does not interpret arbitrary LPAs, calculate fund valuations autonomousl
 
 Private datasets and interview PDFs stay outside this repository. The product brief references the local research workspace; public/demo fixtures must be explicitly synthetic or separately cleared for use. Never include `.env` files, raw LP details or internal commercial calls in a commit.
 
-The repository is local, with no remote configured. No deployment, external service provisioning or accounting-system writes are part of specification setup.
+The repository is private at https://github.com/Sukhraj1000/closegraph. Specification and engineering-tool publication were explicitly authorised. No deployment, external service provisioning, live agent execution or accounting-system writes are part of this setup. Engineering dispatch and automatic merging remain disabled.
+
+## Engineering workflow
+
+- [Architecture and ways of working](docs/engineering/architecture.md)
+- [Independent epic ownership](docs/engineering/epics.md)
+- [Published epic/task issues](docs/engineering/github-issues.json)
+- [Activation and agent adapter contract](docs/engineering/activation.md)
+- [Actual automation verification evidence](docs/verification/engineering-automation.md)
+
+The intended engineering/reviewer loops use native Hermes cron and full macOS-sandboxed clones; the paused draft jobs cannot yet dispatch real coding/review adapters. The reviewer must check the exact head/base revision and relevant tests. Engineers add integration/E2E coverage where needed, and the user is the human integrator. There is no autonomous QA bot and no hosted CI configuration in this pass.
+
+From the repository root, use Python 3.12:
+
+```sh
+python3.12 -m unittest discover -s automation/tests -v
+python3.12 -m automation.cron_tools --help
+python3.12 -m automation.publish_issues  # catalogue validation only; no writes
+```
+
+The protected `AGENTS.md` retains the earlier product-specification setup wording: an attempted update was not approved. The engineering architecture documents this later, explicitly authorised paused tooling scope without changing the financial product scope.
 
 ## Project structure
 

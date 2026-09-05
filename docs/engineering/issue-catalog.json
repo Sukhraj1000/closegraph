@@ -1,0 +1,935 @@
+{
+  "schema_version": 1,
+  "repo": "Sukhraj1000/closegraph",
+  "issues": [
+    {
+      "key": "E0",
+      "title": "[Epic E0] Hermes cron engineering and independent review",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e0"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nNative paused Hermes cron jobs, sandboxed coding/testing, review feedback and guarded merge policy. No custom server, listener, scheduler or QA bot.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "A01",
+      "title": "[A01] Configure paused native Hermes engineering/reviewer cron jobs",
+      "kind": "task",
+      "epic": "E0",
+      "spec_tasks": [],
+      "labels": [
+        "task",
+        "area:e0",
+        "automation"
+      ],
+      "depends_on": [],
+      "body": "## Scope\nUse native Hermes cron with deterministic monitor output, one engineering job and one independent-review job. Keep both paused and local-only. No custom listener/controller. Verify actual job IDs, prompts, schedules, enabled=false and unchanged unrelated jobs.\n\n## Files\n- `automation/cron_tools.py`\n- `automation/cron-jobs.json`\n\n## Acceptance\n- [ ] Implement the bounded scope above.\n- [ ] Exercise actual local commands and record results.\n- [ ] Distinguish fixture tests from real agent/GitHub operation.\n- [ ] Keep dispatch and auto-merge disabled until explicit activation approval.\n\n## Status\nSetup work may exist locally; this issue is not a claim of end-to-end live acceptance."
+    },
+    {
+      "key": "A02",
+      "title": "[A02] Verify macOS sandbox and isolated worker/test execution",
+      "kind": "task",
+      "epic": "E0",
+      "spec_tasks": [],
+      "labels": [
+        "task",
+        "area:e0",
+        "automation"
+      ],
+      "depends_on": [],
+      "body": "## Scope\nFull independent clones, isolated HOME/TMPDIR and test state; all coding/tools/tests inherit sandbox. Prove allowed in-sandbox writes and denied outside/sibling/secret/symlink/network access. No unsandboxed fallback. Bound execution and concurrency. Selected real coding CLI and authorised model access must be tested before activation.\n\n## Files\n- `automation/closegraph_loop/sandbox.py`\n- `automation/tests/test_sandbox.py`\n\n## Acceptance\n- [ ] Implement the bounded scope above.\n- [ ] Exercise actual local commands and record results.\n- [ ] Distinguish fixture tests from real agent/GitHub operation.\n- [ ] Keep dispatch and auto-merge disabled until explicit activation approval.\n\n## Status\nSetup work may exist locally; this issue is not a claim of end-to-end live acceptance."
+    },
+    {
+      "key": "A03",
+      "title": "[A03] Enforce scope, review feedback and appropriate integration tests",
+      "kind": "task",
+      "epic": "E0",
+      "spec_tasks": [],
+      "labels": [
+        "task",
+        "area:e0",
+        "automation"
+      ],
+      "depends_on": [
+        "A01",
+        "A02"
+      ],
+      "body": "## Scope\nEngineering repairs the same PR after changes requested. Reviewer independently reads issue/spec/diff and runs relevant tests; adds integration/E2E requirements only where changed boundaries/journeys need them. Verify current head/base, formal review identity, no self-approval, no duplicate jobs or phase-2 expansion. Human integrates/accepts.\n\n## Files\n- `automation/prompts/engineer.md`\n- `automation/prompts/reviewer.md`\n- `docs/engineering/architecture.md`\n\n## Acceptance\n- [ ] Implement the bounded scope above.\n- [ ] Exercise actual local commands and record results.\n- [ ] Distinguish fixture tests from real agent/GitHub operation.\n- [ ] Keep dispatch and auto-merge disabled until explicit activation approval.\n\n## Status\nSetup work may exist locally; this issue is not a claim of end-to-end live acceptance."
+    },
+    {
+      "key": "A04",
+      "title": "[A04] Complete supervised activation and protected auto-merge gates",
+      "kind": "task",
+      "epic": "E0",
+      "spec_tasks": [],
+      "labels": [
+        "task",
+        "area:e0",
+        "automation"
+      ],
+      "depends_on": [
+        "A03"
+      ],
+      "body": "## Scope\nOperator gate: current private repository protection API returns403 requiring GitHub Pro/public. Keep private and auto-merge off; no billing change. Authorise distinct eligible reviewer principal, scoped coding/runtime access and real task test plan. Verify branch rules, exact-head review, serial merge and post-merge smoke before explicit user resume. No autonomous QA bot or hosted CI required now.\n\n## Files\n- `docs/engineering/activation.md`\n\n## Acceptance\n- [ ] Implement the bounded scope above.\n- [ ] Exercise actual local commands and record results.\n- [ ] Distinguish fixture tests from real agent/GitHub operation.\n- [ ] Keep dispatch and auto-merge disabled until explicit activation approval.\n\n## Status\nSetup work may exist locally; this issue is not a claim of end-to-end live acceptance."
+    },
+    {
+      "key": "E1",
+      "title": "[Epic E1] UI and reviewer workspace",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e1"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nReact evidence-first correction, review and release journey. Own apps/web feature code and browser tests; API fixtures enable independent development, real API is required for final acceptance.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T9.1",
+      "title": "[T9.1] Render separate execution and business states",
+      "kind": "task",
+      "epic": "E1",
+      "spec_tasks": [
+        "9.1"
+      ],
+      "labels": [
+        "task",
+        "area:e1",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.4",
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 9.1\nImplement `apps/web/src/features/packs/PackReview.tsx` with separate execution/check/routing/review/freshness states, accessible text labels and grouped failed relationships; verify `apps/web/tests/pack-states.spec.ts` against the real local API.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 9.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T9.2",
+      "title": "[T9.2] Build source evidence and correction interactions",
+      "kind": "task",
+      "epic": "E1",
+      "spec_tasks": [
+        "9.2"
+      ],
+      "labels": [
+        "task",
+        "area:e1",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.4",
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 9.2\nAdd `SourceEvidence.tsx` and `CorrectionPanel.tsx` for cell/page evidence, original/proposed observations and evidenced correction reasons; verify `apps/web/tests/correction-review.spec.ts` traces a value and creates a new version without erasing history.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 9.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T9.3",
+      "title": "[T9.3] Build independent review and gated release interactions",
+      "kind": "task",
+      "epic": "E1",
+      "spec_tasks": [
+        "9.3"
+      ],
+      "labels": [
+        "task",
+        "area:e1",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.4",
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 9.3\nAdd `ReviewDecision.tsx` and `ReleasePanel.tsx` showing the exact candidate snapshot, independent decision and gated download; verify `apps/web/tests/release.spec.ts` with distinct preparer/reviewer sessions and a blocked then successful repair.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 9.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T9.4",
+      "title": "[T9.4] Expose all-values inspection and audit history",
+      "kind": "task",
+      "epic": "E1",
+      "spec_tasks": [
+        "9.4"
+      ],
+      "labels": [
+        "task",
+        "area:e1",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.4",
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 9.4\nAdd an inspectable all-values view and correction/review audit timeline, without phase-2 request/deadline automation; verify `apps/web/tests/evidence-audit.spec.ts` can inspect ready items and reports observed actions rather than fabricated savings.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 9.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E2",
+      "title": "[Epic E2] API, evidence storage and access control",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e2"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nTyped contracts, PostgreSQL migrations, immutable evidence, sessions, permissions and authorised API transport. Own contracts/storage/api; domain rules belong to E4/E5.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T2.1",
+      "title": "[T2.1] Define canonical fact and evidence contracts",
+      "kind": "task",
+      "epic": "E2",
+      "spec_tasks": [
+        "2.1"
+      ],
+      "labels": [
+        "task",
+        "area:e2",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.1"
+      ],
+      "body": "## Original OpenSpec task 2.1\nAdd `contracts/facts.py` with decimal/context/evidence/observation contracts; verify `apps/api/tests/unit/test_facts.py` covers raw scale, exact string identifiers, missing versus zero, locator conventions and JSON decimal round trips using `uv run --project apps/api pytest apps/api/tests/unit/test_facts.py`.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 2.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T2.2",
+      "title": "[T2.2] Implement versioned storage schema and migrations",
+      "kind": "task",
+      "epic": "E2",
+      "spec_tasks": [
+        "2.2"
+      ],
+      "labels": [
+        "task",
+        "area:e2",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1",
+        "T1.3"
+      ],
+      "body": "## Original OpenSpec task 2.2\nAdd `storage/models.py` and Alembic migrations for immutable source/fact versions, processing requests, check results, dependency edges, correction/review/publication records and audit events; verify upgrade/downgrade and scope/uniqueness constraints in `apps/api/tests/integration/test_storage.py` against PostgreSQL.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 2.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T2.3",
+      "title": "[T2.3] Implement immutable scoped source receipts",
+      "kind": "task",
+      "epic": "E2",
+      "spec_tasks": [
+        "2.3"
+      ],
+      "labels": [
+        "task",
+        "area:e2",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.2"
+      ],
+      "body": "## Original OpenSpec task 2.3\nAdd `storage/blobs.py` and scoped upload receipts with content hashing and resource limits; verify `apps/api/tests/integration/test_receipts.py` proves original bytes remain unchanged, retried receipts are idempotent, reused keys with changed input are rejected, new source versions persist and corrupt/missing blobs are rejected.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 2.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T2.4",
+      "title": "[T2.4] Enforce scoped sessions and independent roles",
+      "kind": "task",
+      "epic": "E2",
+      "spec_tasks": [
+        "2.4"
+      ],
+      "labels": [
+        "task",
+        "area:e2",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.2",
+        "T1.4"
+      ],
+      "body": "## Original OpenSpec task 2.4\nAdd session/role and resource-scope services in `api/auth.py` and `api/permissions.py` with seeded localhost-only preparer/reviewer accounts; verify `apps/api/tests/security/test_access.py` covers cross-fund reads, metadata/count leakage, CSRF, spoofed roles and refusal of public development-auth operation.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 2.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T8.4",
+      "title": "[T8.4] Expose authorised scoped workflow API routes",
+      "kind": "task",
+      "epic": "E2",
+      "spec_tasks": [
+        "8.4"
+      ],
+      "labels": [
+        "task",
+        "area:e2",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.4",
+        "T5.1",
+        "T6.2",
+        "T8.1",
+        "T8.2"
+      ],
+      "body": "## Original OpenSpec task 8.4\nAdd authorised API routes for snapshots, citations, corrections, recompute, review, publication and downloads; verify `apps/api/tests/security/test_routes.py` enforces per-resource scope and treats document instructions/paths as untrusted data on every route.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 8.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E3",
+      "title": "[Epic E3] Source extraction and normalisation",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e3"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nBounded CSV/XLSX/PDF adapters, context/decimal normalisation and source locators. Own extractors/normalisers; candidate observations never grant financial approval.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T3.1",
+      "title": "[T3.1] Extract declared CSV layouts without losing raw tokens",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "3.1"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 3.1\nAdd `extractors/csv.py` with declared layout, raw-token preservation and record dispositions; verify `apps/api/tests/unit/test_csv_extractor.py` covers supported input, delimiters, string IDs, duplicate occurrences, rejected rows and unsupported layouts.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 3.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T3.2",
+      "title": "[T3.2] Extract XLSX values and preserve formula limitations",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "3.2"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 3.2\nAdd `extractors/excel.py` preserving sheet/cell context, original values, formula text and cache status; verify `apps/api/tests/unit/test_excel_extractor.py` covers value-only extraction, formula-without-current-result, unsupported macros/links and malformed workbook limits.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 3.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T3.3",
+      "title": "[T3.3] Normalise explicit numeric and entity context",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "3.3"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 3.3\nAdd `normalisers/numbers.py` and `normalisers/context.py` for explicit scale/currency/period/entity handling and authorised scoped metric mappings; verify `apps/api/tests/unit/test_normalisation.py` catches same digits with different units/periods and unresolved required context.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 3.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T7.1",
+      "title": "[T7.1] Implement the configured-only Reducto adapter",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "7.1"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 7.1\nAdd `extractors/reducto.py` with configured-only egress, provider response capture, page/bbox mapping and explicit availability; verify `apps/api/tests/contract/test_reducto_adapter.py` using clearly labelled synthetic/captured responses for confidence variants, malformed citations, service failure and no silent fallback.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 7.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T7.2",
+      "title": "[T7.2] Add optional second-parser observation interface",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "7.2"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 7.2\nAdd an optional second-parser observation interface in `extractors/common.py`, without making Docling installation mandatory; verify `apps/api/tests/unit/test_second_pass.py` covers NOT_RUN/UNAVAILABLE and contextual disagreement while preserving both original observations.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 7.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T7.3",
+      "title": "[T7.3] Verify the authorised live PDF path",
+      "kind": "task",
+      "epic": "E3",
+      "spec_tasks": [
+        "7.3"
+      ],
+      "labels": [
+        "task",
+        "area:e3",
+        "mvp"
+      ],
+      "depends_on": [
+        "T7.1"
+      ],
+      "body": "## Original OpenSpec task 7.3\nRecord approved external data scope and verify the parser's retention/region requirements before a real PDF test; with configured credentials, run `apps/api/tests/live/test_reducto_pdf.py` on an authorised synthetic PDF and retain source-to-field evidence. If permission/credentials are absent, record the blocker and leave this task unchecked; a replay or skipped test does not complete it.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 7.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E4",
+      "title": "[Epic E4] Financial verification and review routing",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e4"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nSchema/coverage checks, deterministic financial rules and explainable hard-gate-first triage. Own validators, parser_signals and routing; test typed fixtures without UI or Dagster.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T3.4",
+      "title": "[T3.4] Execute data-level validation and source coverage checks",
+      "kind": "task",
+      "epic": "E4",
+      "spec_tasks": [
+        "3.4"
+      ],
+      "labels": [
+        "task",
+        "area:e4",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1",
+        "T1.2"
+      ],
+      "body": "## Original OpenSpec task 3.4\nAdd `validators/schema.py` and `validators/coverage.py` using actual Pandera data-level validation plus source anchors/dispositions; verify `apps/api/tests/unit/test_validation.py` detects bad rows with valid dtypes, missing source rows, malformed evidence, and missing/zero distinctions without silently dropping failures.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 3.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T4.1",
+      "title": "[T4.1] Compute versioned financial reconciliations",
+      "kind": "task",
+      "epic": "E4",
+      "spec_tasks": [
+        "4.1"
+      ],
+      "labels": [
+        "task",
+        "area:e4",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1",
+        "T1.2"
+      ],
+      "body": "## Original OpenSpec task 4.1\nAdd `validators/financial.py` for the supported balance-sheet, source-to-pack and approved fixture fee relationships; verify `apps/api/tests/unit/test_reconciliation.py` checks Decimal results, scoped operands, tolerance versions, unknown applicability and multi-fact diagnostics without declaring an unsupported culprit.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 4.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T4.2",
+      "title": "[T4.2] Compare parser observations in full context",
+      "kind": "task",
+      "epic": "E4",
+      "spec_tasks": [
+        "4.2"
+      ],
+      "labels": [
+        "task",
+        "area:e4",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 4.2\nAdd `services/parser_signals.py` to compare contextual parser observations and distinguish NOT_RUN, UNAVAILABLE and NOT_APPLICABLE; verify `apps/api/tests/unit/test_parser_signals.py` covers contextual disagreement, missing confidence and explicitly single-parser native policy.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 4.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T4.3",
+      "title": "[T4.3] Route review using hard-gate precedence",
+      "kind": "task",
+      "epic": "E4",
+      "spec_tasks": [
+        "4.3"
+      ],
+      "labels": [
+        "task",
+        "area:e4",
+        "mvp"
+      ],
+      "depends_on": [
+        "T4.1",
+        "T4.2"
+      ],
+      "body": "## Original OpenSpec task 4.3\nAdd `services/routing.py` with BLOCKED > NEEDS_REVIEW > READY_FOR_QUICK_REVIEW hard-gate precedence and explainable within-route priority; verify `apps/api/tests/unit/test_routing.py` covers high confidence plus failed reconciliation, unknown checks, uncalibrated AI confidence and quick review without automatic approval.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 4.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T4.4",
+      "title": "[T4.4] Evaluate versioned review policies on held-out cases",
+      "kind": "task",
+      "epic": "E4",
+      "spec_tasks": [
+        "4.4"
+      ],
+      "labels": [
+        "task",
+        "area:e4",
+        "mvp"
+      ],
+      "depends_on": [
+        "T4.3",
+        "T1.2"
+      ],
+      "body": "## Original OpenSpec task 4.4\nAdd versioned review-policy fixtures and `apps/api/tests/evaluation/test_policy_cases.py`; verify labelled held-out, correlated-parser-error and materiality cases report false-ready outcomes, coverage and scope without asserting probability calibration or customer savings.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 4.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E5",
+      "title": "[Epic E5] Correction lifecycle and reviewed output",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e5"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nVersioned corrections, dependency impact, mapped workbook/manifest and independent snapshot-bound review/publication. Own corrections/impact/review/publication services and outputs.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T5.1",
+      "title": "[T5.1] Record source-backed correction versions",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "5.1"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.2",
+        "T2.4"
+      ],
+      "body": "## Original OpenSpec task 5.1\nAdd `services/corrections.py` to create evidenced fact/treatment versions with actor/reason; verify `apps/api/tests/integration/test_corrections.py` retains original observations and failed checks and rejects unsupported/unauthorised changes.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 5.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T5.2",
+      "title": "[T5.2] Propagate evidenced dependency impact",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "5.2"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.2"
+      ],
+      "body": "## Original OpenSpec task 5.2\nAdd `services/impact.py` for scoped dependency closure and current/stale/unverifiable transitions; verify `apps/api/tests/integration/test_impact.py` covers affected outputs, established independent outputs, changed mappings/rules/policy and unknown/cyclic dependency coverage.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 5.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T5.3",
+      "title": "[T5.3] Generate and round-trip the supported workbook",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "5.3"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1",
+        "T1.2"
+      ],
+      "body": "## Original OpenSpec task 5.3\nAdd `outputs/workbook.py` to fill only allowed cells of the supported value-only template from recomputed values; verify `apps/api/tests/integration/test_output_template.py` reads the candidate back, compares expected values and unchanged layout/cells, and blocks unsupported formula/macro/template features.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 5.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T5.4",
+      "title": "[T5.4] Generate complete source-to-output manifests",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "5.4"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 5.4\nAdd `outputs/manifest.py` linking source/fact/rule/check/snapshot identifiers and artifact hash; verify `apps/api/tests/integration/test_manifest.py` resolves the lineage and rejects missing evidence or integrity mismatch.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 5.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T8.1",
+      "title": "[T8.1] Enforce independent exact-snapshot review decisions",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "8.1"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.4",
+        "T5.1",
+        "T5.2"
+      ],
+      "body": "## Original OpenSpec task 8.1\nAdd `services/review.py` for exact-snapshot independent decisions and explicit soft-signal adjudication; verify `apps/api/tests/integration/test_review.py` denies self-approval, unresolved hard blockers and revoked permission; selecting a different value/context creates a new snapshot and rechecks while retaining original parser/check history.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 8.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T8.2",
+      "title": "[T8.2] Gate publication on trusted state and artifact integrity",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "8.2"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T8.1",
+        "T5.3",
+        "T5.4"
+      ],
+      "body": "## Original OpenSpec task 8.2\nAdd `services/publication.py` with trusted-state gating, scoped version locking and output integrity verification; verify `apps/api/tests/integration/test_publication.py` covers missing bytes/evidence, forged pass flags, repeated release and historical/superseded outputs.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 8.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T8.3",
+      "title": "[T8.3] Prevent stale publication under concurrent writes",
+      "kind": "task",
+      "epic": "E5",
+      "spec_tasks": [
+        "8.3"
+      ],
+      "labels": [
+        "task",
+        "area:e5",
+        "mvp"
+      ],
+      "depends_on": [
+        "T8.2"
+      ],
+      "body": "## Original OpenSpec task 8.3\nMake all relevant source/rule/policy writers participate in the publication version protocol; verify `apps/api/tests/integration/test_publication_races.py` races updates, revocations and concurrent releases against approval/publication and prevents stale release.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 8.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E6",
+      "title": "[Epic E6] Dagster pipeline and local runtime",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e6"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nScaffolding, local services, snapshot-bound computational orchestration and recovery. Own runtime manifests and pipeline; never duplicate financial or approval logic in Dagster.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T1.1",
+      "title": "[T1.1] Bootstrap pinned Python runtime",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "1.1"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [],
+      "body": "## Original OpenSpec task 1.1\nCreate `apps/api/pyproject.toml`, the `src/closegraph/` package, compatible pinned dependencies and `uv.lock`; verify `uv sync --project apps/api` and imports of FastAPI, Dagster, Polars, openpyxl and Pandera succeed.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 1.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T1.3",
+      "title": "[T1.3] Configure isolated local PostgreSQL and Dagster services",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "1.3"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.1"
+      ],
+      "body": "## Original OpenSpec task 1.3\nCreate `compose.yaml`, `.env.example` and local startup instructions with PostgreSQL, one Dagster code location/webserver/daemon and localhost bindings; verify `docker compose config` and documented health checks without provisioning external services.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 1.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T1.4",
+      "title": "[T1.4] Bootstrap FastAPI health and React application",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "1.4"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.1"
+      ],
+      "body": "## Original OpenSpec task 1.4\nAdd `apps/api/src/closegraph/api/app.py` health endpoint and `apps/web/` React/TypeScript/Vite scaffold; verify API health and `npm --prefix apps/web run build`, preserving the root OpenSpec scripts.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 1.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T6.1",
+      "title": "[T6.1] Execute snapshot-bound native Dagster assets",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "6.1"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.3",
+        "T2.3",
+        "T3.1",
+        "T3.2",
+        "T3.3",
+        "T3.4",
+        "T4.1",
+        "T4.3",
+        "T5.3",
+        "T5.4"
+      ],
+      "body": "## Original OpenSpec task 6.1\nAdd `pipeline/assets.py`, `pipeline/resources.py` and `pipeline/definitions.py` with explicit snapshot inputs and durable IO; verify `apps/api/tests/integration/test_pipeline.py` executes real native fixture files through extraction, checks, candidate generation and review snapshot without shared latest-document state.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 6.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T6.2",
+      "title": "[T6.2] Dispatch durable processing requests idempotently",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "6.2"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T1.3",
+        "T2.2"
+      ],
+      "body": "## Original OpenSpec task 6.2\nAdd `pipeline/sensors.py` reading committed processing requests with stable run identities; verify `apps/api/tests/integration/test_dispatch.py` handles sensor restart, repeated requests and acknowledgement interruption without lost work or duplicate business effects.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 6.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T6.3",
+      "title": "[T6.3] Preserve negative check diagnostics in review",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "6.3"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T6.1"
+      ],
+      "body": "## Original OpenSpec task 6.3\nPersist negative financial outcomes and ineligible candidate descriptors without preventing review-snapshot materialisation; verify `apps/api/tests/integration/test_failed_checks_visible.py` shows completed processing with BLOCKED review and actual failed operands.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 6.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T6.4",
+      "title": "[T6.4] Recover safely from interrupted and late execution",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "6.4"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T6.1",
+        "T6.2"
+      ],
+      "body": "## Original OpenSpec task 6.4\nAdd bounded transient retries and snapshot-scoped stage uniqueness; verify `apps/api/tests/integration/test_recovery.py` kills/restarts execution, retries after a committed write and rejects stale late completion overwriting current state.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 6.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T6.5",
+      "title": "[T6.5] Trigger new computation from correction revisions",
+      "kind": "task",
+      "epic": "E6",
+      "spec_tasks": [
+        "6.5"
+      ],
+      "labels": [
+        "task",
+        "area:e6",
+        "mvp"
+      ],
+      "depends_on": [
+        "T5.1",
+        "T5.2",
+        "T6.1",
+        "T6.2"
+      ],
+      "body": "## Original OpenSpec task 6.5\nWire authorised correction events to new processing requests rather than waiting inside a job; verify `apps/api/tests/integration/test_correction_rerun.py` proves the old run finishes, a new revision reruns affected computations and the new candidate differs as expected.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 6.5\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "E7",
+      "title": "[Epic E7] Test harness, fixtures and human acceptance",
+      "kind": "epic",
+      "epic": null,
+      "spec_tasks": [],
+      "labels": [
+        "epic",
+        "area:e7"
+      ],
+      "depends_on": [],
+      "body": "## Outcome\nLabelled fixtures, deterministic integration/E2E harness and evidence reports. Each feature owns necessary tests; user owns exploratory QA and final acceptance. No QA bot.\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] User-reviewed integration/acceptance where applicable.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `openspec/changes/verify-corrected-reporting-pack/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA."
+    },
+    {
+      "key": "T1.2",
+      "title": "[T1.2] Build labelled synthetic reporting fixtures",
+      "kind": "task",
+      "epic": "E7",
+      "spec_tasks": [
+        "1.2"
+      ],
+      "labels": [
+        "task",
+        "area:e7",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.1"
+      ],
+      "body": "## Original OpenSpec task 1.2\nCreate `apps/api/tests/conftest.py` and a native synthetic fixture builder under `fixtures/synthetic/` with source CSV, value-only XLSX pack, approved fictional fee rule and expected corrected output; verify `uv run --project apps/api pytest apps/api/tests/test_fixture_contract.py` checks labels, scope and expected source anchors.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 1.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T10.1",
+      "title": "[T10.1] Run the complete backend verification matrix",
+      "kind": "task",
+      "epic": "E7",
+      "spec_tasks": [
+        "10.1"
+      ],
+      "labels": [
+        "task",
+        "area:e7",
+        "mvp"
+      ],
+      "depends_on": [
+        "T2.3",
+        "T3.4",
+        "T4.4",
+        "T6.4",
+        "T6.5",
+        "T7.2",
+        "T8.3",
+        "T8.4"
+      ],
+      "body": "## Original OpenSpec task 10.1\nRun `uv run --project apps/api pytest apps/api/tests/unit apps/api/tests/contract apps/api/tests/integration apps/api/tests/security apps/api/tests/evaluation` against the real database and configured test infrastructure; record exact results and fix required failures, without counting skipped live tests as passed.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 10.1\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T10.2",
+      "title": "[T10.2] Exercise the real browser correction-to-download journey",
+      "kind": "task",
+      "epic": "E7",
+      "spec_tasks": [
+        "10.2"
+      ],
+      "labels": [
+        "task",
+        "area:e7",
+        "mvp"
+      ],
+      "depends_on": [
+        "T10.1",
+        "T9.1",
+        "T9.2",
+        "T9.3",
+        "T9.4"
+      ],
+      "body": "## Original OpenSpec task 10.2\nRun `npm --prefix apps/web run build` and `npm --prefix apps/web exec playwright test` after a clean local startup; complete every case in `docs/acceptance.md`, inspect the downloaded revised workbook/manifest and record browser evidence.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 10.2\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T10.3",
+      "title": "[T10.3] Produce source-linked MVP acceptance evidence",
+      "kind": "task",
+      "epic": "E7",
+      "spec_tasks": [
+        "10.3"
+      ],
+      "labels": [
+        "task",
+        "area:e7",
+        "mvp"
+      ],
+      "depends_on": [
+        "T10.2",
+        "T7.3"
+      ],
+      "body": "## Original OpenSpec task 10.3\nProduce `docs/verification/mvp-acceptance.md` with scenario-to-test mapping, actual commands/results, artifact identities, live versus replay provenance and remaining limitations; verify every required criterion has evidence and that live PDF is either passed or explicitly removed from scope by the user, never silently waived.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 10.3\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    },
+    {
+      "key": "T10.4",
+      "title": "[T10.4] Obtain human acceptance of the working MVP",
+      "kind": "task",
+      "epic": "E7",
+      "spec_tasks": [
+        "10.4"
+      ],
+      "labels": [
+        "task",
+        "area:e7",
+        "mvp"
+      ],
+      "depends_on": [
+        "T10.3"
+      ],
+      "body": "## Original OpenSpec task 10.4\nObtain the user's review of the working MVP and record any approved scope changes and the final acceptance decision; verify the report covers the complete active scope and that phase 2 has not begun early.\n\n## Source of truth\n- `openspec/changes/verify-corrected-reporting-pack/tasks.md`, task 10.4\n- `openspec/changes/verify-corrected-reporting-pack/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation."
+    }
+  ]
+}

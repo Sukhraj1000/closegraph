@@ -1,0 +1,47 @@
+{
+  "profile": "default",
+  "repo": "Sukhraj1000/closegraph",
+  "mode": "paused-setup",
+  "jobs": [
+    {
+      "id": "30723152fd6a",
+      "name": "closegraph-engineering-loop",
+      "schedule": {
+        "kind": "interval",
+        "minutes": 30,
+        "display": "every 30m"
+      },
+      "prompt": "CloseGraph PAUSED SETUP engineering loop, private Sukhraj1000/closegraph ONLY. First run `python3.12 -m automation.cron_tools status` in /Users/sukhrajkalon/projects/closegraph. If dispatch_available is not true, STOP with a brief paused/blocker report; currently it intentionally returns false. Do not edit the gate, run coding models, edit files, create/push PRs/comments, merge, enable jobs or configure adapters. User chose native Hermes cron instead of a custom listener/controller. Only after separately verified user-approved activation, read/follow /Users/sukhrajkalon/projects/closegraph/automation/prompts/engineer.md and docs/engineering/architecture.md: repair existing requested-changes PR before one approved ready task, follow OpenSpec/epic ownership/dependencies, full independent macOS-sandboxed clone for every coding tool/build/test, appropriate integration/E2E only when needed, verified trusted claim/publishing adapter, no publishing credentials in untrusted code, exact head/base test evidence, read back external effects. Missing real adapter or claim/publishing integration means stop. No self-approval, auto-merge, phase-2 work, other projects or private-data uploads. User owns QA/integration. No actionable state -> HEARTBEAT_OK. Results are saved locally, not messaged to this terminal.",
+      "enabled": false,
+      "deliver": "local",
+      "failure_deliver": "local",
+      "monitor_script": "closegraph/monitor.py",
+      "enabled_toolsets": [
+        "terminal"
+      ],
+      "workdir": "/Users/sukhrajkalon/projects/closegraph",
+      "model": null,
+      "provider": null
+    },
+    {
+      "id": "c8f0dcced8c1",
+      "name": "closegraph-independent-review-loop",
+      "schedule": {
+        "kind": "interval",
+        "minutes": 15,
+        "display": "every 15m"
+      },
+      "prompt": "CloseGraph PAUSED SETUP reviewer loop, private Sukhraj1000/closegraph ONLY. First run `python3.12 -m automation.cron_tools status` in /Users/sukhrajkalon/projects/closegraph. If dispatch_available is not true, STOP with a brief paused/blocker report; currently it intentionally returns false. Do not edit the gate, run coding/review models, write GitHub comments/reviews, merge, change billing/visibility, enable jobs or configure adapters. User chose native Hermes cron, no custom listener/controller, QA bot or hosted CI. Only after separately verified user-approved activation, follow /Users/sukhrajkalon/projects/closegraph/automation/prompts/reviewer.md: actual GitHub state over prior job claims, eligible reviewer principal distinct from author, one changed exact head AND base, independent scope/spec/code/test review and relevant tests in fresh full-clone macOS sandbox, necessary integration/E2E only where appropriate, formal review and exact read-back via trusted publishing adapter. Missing adapter/claim/publishing implementation/test proof means stop. Never run repository code or privileged worker Git hooks on host or pass GitHub credentials into tests. Auto-merge remains OFF, user owns QA/integration; merged is not accepted. No actionable state -> HEARTBEAT_OK. Reports are local-only, not terminal notifications.",
+      "enabled": false,
+      "deliver": "local",
+      "failure_deliver": "local",
+      "monitor_script": "closegraph/monitor.py",
+      "enabled_toolsets": [
+        "terminal"
+      ],
+      "workdir": "/Users/sukhrajkalon/projects/closegraph",
+      "model": null,
+      "provider": null
+    }
+  ]
+}
