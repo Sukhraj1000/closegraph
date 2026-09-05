@@ -1,0 +1,66 @@
+{
+  "reviewer": "/root/product_review",
+  "independent_of_authorship": true,
+  "reviewed_at": "2026-09-05T19:44:13.159497+00:00",
+  "candidate": "15125d41793589008f83338128ed5223e7d610a0",
+  "tree": "2360cc275152bb3e0bd4b6bf560dc46115a25060",
+  "review_base": "b49db58431572aef74f9e3b3d5f98698e344a3c6",
+  "scope": "Six-file API remediation delta; original whole-product review retained separately",
+  "changed_files": [
+    "apps/api/src/closegraph/api/app.py",
+    "apps/api/src/closegraph/api/ports.py",
+    "apps/api/src/closegraph/api/services.py",
+    "apps/api/src/closegraph/outputs/workbook.py",
+    "apps/api/tests/integration/test_download_publications.py",
+    "apps/api/tests/unit/test_workbook_features.py"
+  ],
+  "recommendation": "API remediation delta passes independent review; UI finding remains pending its separate repair transfer/review",
+  "unresolved_api_findings": [],
+  "resolved_findings": [
+    {
+      "id": "workbook-fidelity",
+      "result": "Original customSheetViews reproduction blocks; positive workbook/worksheet grammar, immutable pass-through parts, mapped XML changes and full package verification inspected"
+    },
+    {
+      "id": "publication-identity",
+      "result": "Same-byte current v6 and historical v3 downloads preserve distinct publication identity; mismatched publication/manifest denied"
+    }
+  ],
+  "api_tests": {
+    "tests": 288,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "pytest_summary": "288 passed in 56.77s",
+  "database_port": 55432,
+  "provider_scope": "Retained genuine live receipt verification only; no new external requests",
+  "tracked_status": "",
+  "source_digest_manifest_sha256": "81fb8fd7d77b038bb9604008a953d4b57de3f7433f86aaa438b56ee54976caa9",
+  "artifacts": {
+    "api-junit.xml": {
+      "sha256": "4de4fe643984f4fd207ba479ba3330d2d085bfce09cb9bcc96458d5644746f0a",
+      "bytes": 40502
+    },
+    "api-run.json": {
+      "sha256": "7c85584d94a7ceed95977684402d5380b336e6ed59ab72fdb720831c19c1f4f1",
+      "bytes": 744
+    },
+    "api-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "api-stdout.txt": {
+      "sha256": "6dda8b7c3e0ffb391d2d2c87305280a95647f5fd6500be0f62e1caf5175d54b6",
+      "bytes": 341
+    },
+    "independent-reproductions.json": {
+      "sha256": "319d3f006bca908cbcef12cba5d9a8cedeb09b0b82c835fff051217070c69be3",
+      "bytes": 826
+    },
+    "source-digests.json": {
+      "sha256": "81fb8fd7d77b038bb9604008a953d4b57de3f7433f86aaa438b56ee54976caa9",
+      "bytes": 12171
+    }
+  }
+}
