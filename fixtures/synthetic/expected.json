@@ -1,0 +1,43 @@
+{
+  "label": "SYNTHETIC",
+  "tenant_id": "synthetic-tenant",
+  "fund_id": "synthetic-fund",
+  "pack_id": "synthetic-pack",
+  "context": {
+    "entity_id": "0012",
+    "period": "2026-Q1",
+    "currency": "GBP"
+  },
+  "rule": {
+    "entity_id": "0012",
+    "period": "2026-Q1",
+    "currency": "GBP",
+    "approved": true,
+    "version": "fictional-fee-v1",
+    "approval_id": "synthetic-approved-fee-rule",
+    "tolerance": "0.01",
+    "tolerance_version": "penny-v1"
+  },
+  "expected": {
+    "fee": "60000",
+    "statement_fee": "60000",
+    "total": "60000"
+  },
+  "bindings": [
+    [
+      "fee",
+      "Pack",
+      "B6"
+    ],
+    [
+      "statement_fee",
+      "Pack",
+      "B7"
+    ],
+    [
+      "total",
+      "Pack",
+      "B8"
+    ]
+  ]
+}
