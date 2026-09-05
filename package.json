@@ -1,0 +1,18 @@
+{
+  "name": "closegraph",
+  "version": "0.0.0",
+  "private": true,
+  "description": "OpenSpec specification workspace for source-backed reporting-pack correction and verification. Application not implemented yet.",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "spec:validate": "OPENSPEC_TELEMETRY=0 openspec validate --all --strict --no-interactive",
+    "spec:status": "OPENSPEC_TELEMETRY=0 openspec status --change verify-corrected-reporting-pack",
+    "spec:list": "OPENSPEC_TELEMETRY=0 openspec list",
+    "spec:check": "npm run spec:validate && npm run spec:status"
+  },
+  "devDependencies": {
+    "@fission-ai/openspec": "1.10.0"
+  }
+}

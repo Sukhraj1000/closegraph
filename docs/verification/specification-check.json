@@ -1,0 +1,153 @@
+{
+  "verified_at_utc": "2026-09-05T13:54:11.311366+00:00",
+  "openspec_validation": {
+    "items": [
+      {
+        "id": "verify-corrected-reporting-pack",
+        "type": "change",
+        "valid": true,
+        "issues": [],
+        "durationMs": 12
+      }
+    ],
+    "summary": {
+      "totals": {
+        "items": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "byType": {
+        "change": {
+          "items": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "spec": {
+          "items": 0,
+          "passed": 0,
+          "failed": 0
+        }
+      }
+    },
+    "version": "1.0",
+    "root": {
+      "path": "/Users/sukhrajkalon/projects/closegraph",
+      "source": "nearest"
+    }
+  },
+  "planning_complete": true,
+  "artifact_statuses": [
+    {
+      "id": "proposal",
+      "outputPath": "proposal.md",
+      "status": "done",
+      "requires": []
+    },
+    {
+      "id": "specs",
+      "outputPath": "specs/**/*.md",
+      "status": "done",
+      "requires": [
+        "proposal"
+      ]
+    },
+    {
+      "id": "design",
+      "outputPath": "design.md",
+      "status": "done",
+      "requires": [
+        "proposal"
+      ]
+    },
+    {
+      "id": "tasks",
+      "outputPath": "tasks.md",
+      "status": "done",
+      "requires": [
+        "specs",
+        "design"
+      ]
+    }
+  ],
+  "change_listing": [
+    {
+      "name": "verify-corrected-reporting-pack",
+      "completedTasks": 0,
+      "totalTasks": 40,
+      "lastModified": "2026-09-05T13:52:41.382Z",
+      "status": "in-progress"
+    }
+  ],
+  "sha256": {
+    "AGENTS.md": "20359f45611b246c7764344a565940da06235bcd60f8dd766af293be39ef4184",
+    "README.md": "6e310e1e33d1ab455fc9aa60d1707b65f76ca706db4fa3912c2b47b70232a648",
+    "docs/acceptance.md": "3942944ae3a85618a9d4ef9ffa4a6d9fd61988c480c8defccea560b93f63df9d",
+    "docs/product-brief.md": "0c3d649d1bbc9214a1f7d02da830a7c810caed3e22f647d4ea6c852bad8d7b6f",
+    "docs/roadmap.md": "8a877fe2d8529ef42252d55a88578ed84f7ead05b3b95e19406ea809dfe51085",
+    "openspec/changes/verify-corrected-reporting-pack/design.md": "7e15b5dbea7b73cf21b87baf68d527e1d88e9c6180ed2120a7a86633bcb2a1a5",
+    "openspec/changes/verify-corrected-reporting-pack/proposal.md": "912c06a944046c7d8d59441ce97a56c74344cbb02d09a401aab9f5a20bd01444",
+    "openspec/changes/verify-corrected-reporting-pack/specs/correction-verification/spec.md": "681f83d43ade49915919e264cf237a670be6585bd92f1eaa66b7cffc2a0795e2",
+    "openspec/changes/verify-corrected-reporting-pack/specs/reporting-evidence/spec.md": "7e06bf469e292b93ae94c0f3d912c06e01b614ea9f22f3976ce7014bec7bd6df",
+    "openspec/changes/verify-corrected-reporting-pack/specs/review-routing/spec.md": "34fc27f739064fef7c2bb45b47ae1f3b7fef3a8d41a17699c10f29f18da7b95a",
+    "openspec/changes/verify-corrected-reporting-pack/specs/reviewed-pack-release/spec.md": "7da9e59a017fc77149d06e51e0d945aae12d4e1a7ce3bfc08dc0da917e308cd6",
+    "openspec/changes/verify-corrected-reporting-pack/specs/reviewer-workspace/spec.md": "2bb3fed039ab05314711b6189214d963e514741088e23afc1dcb27c4c06daa4d",
+    "openspec/changes/verify-corrected-reporting-pack/tasks.md": "60c27d1fd3bedaea18b7ec3657e3fe1499ff8b7dabc09e61977f61bfe34b4769",
+    "openspec/config.yaml": "3c8087dbaecfd666932ab54c9a98a57c708081f0093a5390b14a196bbcdb2ad2",
+    "package-lock.json": "0e4b977da16f3dd664874b645caf453e66dca37594b3485328ccaf12271aa203",
+    "package.json": "cc6bf805e8d8ecf87d51774361c0f68fe506bbe16236cc47cadb137ee8bbd8bb"
+  },
+  "scope": "Specification validation only; no application implementation, financial accuracy, live parser, browser or E2E verification.",
+  "integrity_checks": {
+    "project": "/Users/sukhrajkalon/projects/closegraph",
+    "capabilities": [
+      {
+        "capability": "correction-verification",
+        "requirements": 6,
+        "scenarios": 13
+      },
+      {
+        "capability": "reporting-evidence",
+        "requirements": 6,
+        "scenarios": 13
+      },
+      {
+        "capability": "review-routing",
+        "requirements": 5,
+        "scenarios": 11
+      },
+      {
+        "capability": "reviewed-pack-release",
+        "requirements": 6,
+        "scenarios": 13
+      },
+      {
+        "capability": "reviewer-workspace",
+        "requirements": 4,
+        "scenarios": 6
+      }
+    ],
+    "capability_count": 5,
+    "requirement_count": 27,
+    "scenario_count": 56,
+    "implementation_tasks": 40,
+    "completed_implementation_tasks": 0,
+    "active_changes": [
+      "verify-corrected-reporting-pack"
+    ],
+    "implemented_baseline_specs": 0,
+    "broken_authored_markdown_links": [],
+    "source_binaries_in_untracked_files": false,
+    "git_remotes": []
+  },
+  "spec_check_command": "npm run spec:check",
+  "spec_check_exit_code": 0,
+  "spec_check_stdout": "> closegraph@0.0.0 spec:check\n> npm run spec:validate && npm run spec:status\n\n\n> closegraph@0.0.0 spec:validate\n> OPENSPEC_TELEMETRY=0 openspec validate --all --strict --no-interactive\n\n\u2713 change/verify-corrected-reporting-pack\nTotals: 1 passed, 0 failed (1 items)\n\n> closegraph@0.0.0 spec:status\n> OPENSPEC_TELEMETRY=0 openspec status --change verify-corrected-reporting-pack\n\n- Loading change status...\nChange: verify-corrected-reporting-pack\nSchema: spec-driven\nChange root: /Users/sukhrajkalon/projects/closegraph/openspec/changes/verify-corrected-reporting-pack\nProgress: 4/4 artifacts complete\n\n[x] proposal\n[x] specs\n[x] design\n[x] tasks\n\nAll planning artifacts complete!",
+  "read_only_review": {
+    "status": "completed",
+    "result": "No blocking or important findings within requested scope. Parent also reviewed and strengthened correction/idempotency scenarios.",
+    "transcript": "/Users/sukhrajkalon/.hermes/cache/delegation/live/deleg_0867fec0/task-0.log"
+  },
+  "runtime_tests_executed": false,
+  "external_documents_uploaded": false,
+  "github_remote_configured": false
+}

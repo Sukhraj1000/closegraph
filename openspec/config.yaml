@@ -1,0 +1,46 @@
+schema: spec-driven
+
+context: |
+  CloseGraph is a source-backed extraction, reconciliation and correction-verification
+  layer for private-market reporting. MVP use case 1 is a complete reporting-pack
+  correction loop, not merely highlighting uncertain extracted values.
+  Primary operator: administrator/accountant. Independent reviewer approves the exact
+  revised snapshot. Fund manager sees scoped status/evidence and decisions needing attention.
+  Build actual Python extraction, normalisation, calculation and reconciliation tools.
+  Ylookup/export inputs are supported integration boundaries, not a ban on our own tools.
+  No custom autonomous agents or model-generated authority for financial values.
+  Probabilistic parsers can supply candidate observations, never trusted pass flags.
+  Approved stack: React/TypeScript, FastAPI/Pydantic, Dagster, Polars, openpyxl,
+  Pandera, PostgreSQL and local immutable storage behind an object-store interface.
+  Reducto is the PDF adapter; Docling is an optional evaluated second pass, not mandatory
+  infrastructure. Reducto is AI-backed and external processing requires data-use approval.
+  Dagster owns computational execution/retries; application services own review,
+  authorisation, version validity and publication. No parallel task queue or Kafka.
+  Route with hard evidence/financial gates first, then parser confidence/agreement signals.
+  BLOCKED overrides NEEDS_REVIEW, which overrides READY_FOR_QUICK_REVIEW.
+  Risk priority cannot offset a failed required check. Missing confidence is not invented.
+  Human approval never rewrites extraction history or turns a failed check into PASS.
+  Corrections create new versions and rerun affected checks before renewed approval.
+  Source evidence, coverage, currency, scale, entity, period and explicit dependencies matter.
+  Use case 2 (missing-evidence requests, owners, deadline alerts and escalation) starts
+  only after use case 1 passes real end-to-end acceptance. MCP and accounting posting are deferred.
+  Input adapters are bounded; the core is reusable, not built around the supplied datasets.
+  No universal file support, accuracy guarantee or autonomous legal/accounting interpretation.
+  This repository contains specifications only. Unchecked tasks are not implemented.
+  Use direct UK English and keep one working vertical slice before broader features.
+
+rules:
+  proposal:
+    - Tie scope to the interview's repeated correction/review rounds and preserve the use-case-2 gate.
+    - Permit source-backed extraction and reconciliation tools without claiming a general agent platform.
+  specs:
+    - Use SHALL/MUST requirements with concrete WHEN/THEN scenarios, including blocked and retry paths.
+    - Keep extraction, checks, review, freshness and publication states separate.
+    - Distinguish unavailable signals, correlated agreement and policy conformance from ground truth.
+  design:
+    - Keep deterministic tools testable without Dagster; explain data passing and snapshot identities.
+    - Persist failed check results for review while blocking release, not the review queue itself.
+    - Address external parser permission, decimal values, formula caches and actual data-level validation.
+  tasks:
+    - Use unchecked numbered implementation checkboxes with exact proposed paths and verification.
+    - Do not start use case 2, archive the change or claim runtime success from spec validation alone.
