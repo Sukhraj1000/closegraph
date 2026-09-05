@@ -1,0 +1,106 @@
+{
+  "reviewer": "/root/product_review",
+  "independent_of_authorship": true,
+  "candidate": "13610a8f19ae523fdb5b73c17f6baf5f2332c931",
+  "tree": "c90367c0ff9a538498bb91ae37abd2e703ef61c7",
+  "reviewed_at": "2026-09-05T19:47:27.436136+00:00",
+  "review_base": "15125d41793589008f83338128ed5223e7d610a0",
+  "changed_files": [
+    "apps/web/src/features/packs/PackReview.test.tsx",
+    "apps/web/src/features/packs/PackReview.tsx",
+    "apps/web/src/features/packs/SourceEvidence.tsx"
+  ],
+  "recommendation": "UI remediation passes independent review; all three original product findings are resolved on this candidate",
+  "unresolved_findings": [],
+  "resolved_finding": "Occurrence content and exact citation stay together; stable deduplicated document tab tracks fact dropdown; missing occurrence does not borrow another preview",
+  "official_ui_tests": {
+    "tests": 32,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "additional_verification": {
+    "counts": {
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "meaning": "Original 32 plus two reviewer-authored tests; mergeConfig retained the original include. This is 34 total, not 34 additional tests.",
+    "fixture": "Actual native extraction and typed API projection from synthetic original workbook B6=75000/B7=80000; real cumulative preview rows included",
+    "interaction_environment": "JSDOM, not full-browser runtime"
+  },
+  "production_build": "PASS",
+  "previous_api_tests": {
+    "candidate": "15125d41793589008f83338128ed5223e7d610a0",
+    "count": 288,
+    "skips": 0,
+    "source_digests_unchanged": true,
+    "rerun": false
+  },
+  "not_run": "No browser journeys or live provider requests in this review; coordinator separately verifies final runtime/browser composition",
+  "tracked_status": "",
+  "source_digest_manifest_sha256": "cee8f9e87562ebdcf41045217e9148f389a68cd9ae697a06ddeb03572eb2e338",
+  "artifacts": {
+    "build-artifact-digests.json": {
+      "sha256": "667db40aa758cc0dbfe34b028fe4d441ebf8e682b465ebf62ef2c971cda597be",
+      "bytes": 558
+    },
+    "independent-evidence.config.ts": {
+      "sha256": "631e975a15ceb6b1231c9c0a3909a80b4591872c2171541757a945aae6d2b29d",
+      "bytes": 176
+    },
+    "independent-evidence.test.tsx": {
+      "sha256": "a1e2537a19717f0b5c7f09b05b633c2573a28b63e62d4e63d78b6fae937b04f0",
+      "bytes": 3607
+    },
+    "independent-ui-junit.xml": {
+      "sha256": "916c15b732c36b19a0ded912a99daf3db7eab7db67ce97891bae2149908dd8e6",
+      "bytes": 8837
+    },
+    "independent-ui-run.json": {
+      "sha256": "de0bffc8ba91ea970ad21774ff0ca3b7cedb56223b6415facc33ac5d695a8f01",
+      "bytes": 510
+    },
+    "independent-ui-stderr.txt": {
+      "sha256": "024df57a50fcd4f1771e1e974befc5f1c9d832a361d87a4f090957d3a937bc3a",
+      "bytes": 358
+    },
+    "independent-ui-stdout.txt": {
+      "sha256": "742ce8e753b62da0619ddbb15ebe375040ba49ac404f924945ae9d469cfa80e7",
+      "bytes": 1300
+    },
+    "native-api-shaped-fixture.json": {
+      "sha256": "126092b4d05a76abec32abb74df6708610eb7df5d13a120839a65cc8dad91c6f",
+      "bytes": 39854
+    },
+    "source-digests.json": {
+      "sha256": "cee8f9e87562ebdcf41045217e9148f389a68cd9ae697a06ddeb03572eb2e338",
+      "bytes": 5332
+    },
+    "ui-build-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "ui-build-stdout.txt": {
+      "sha256": "b1a414e70c1b62cc0aef2689034538283b10403c269f13f016922ffe4371b9cb",
+      "bytes": 567
+    },
+    "ui-junit.xml": {
+      "sha256": "d86234ec6d97511ccff597dd501034559d2f9ac314699aa4a1a7c6e3e7218c3c",
+      "bytes": 8198
+    },
+    "ui-run.json": {
+      "sha256": "f68d3ca272cdf3520243835e3efa06a225345c950777744425dc00c1870933f6",
+      "bytes": 776
+    },
+    "ui-unit-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "ui-unit-stdout.txt": {
+      "sha256": "0d6ef65c0056632f7ebc3b880eec39586d74a8f379e858ae0eaab662e405c576",
+      "bytes": 1023
+    }
+  }
+}
