@@ -1,6 +1,7 @@
 import { ApiError } from '../../lib/api';
-import type { Collection, Edit, Recipe, RowPage } from './model';
+import type { Collection, CollectionMember, ComparisonPage, Edit, Recipe, Requirement, RowPage } from './model';
 const path = (id:string) => '/collections/'+encodeURIComponent(id);
+function requestKey(value:string){if(value.length>200)throw new Error('This request identifier exceeds the supported length.');return value;}
 export class CollectionsApi {
  constructor(private csrf:string){}
  private async request<T>(route:string,method='GET',body?:unknown,signal?:AbortSignal):Promise<T>{
@@ -13,7 +14,17 @@ export class CollectionsApi {
  list(signal?:AbortSignal){return this.request<Collection[]>('/collections','GET',undefined,signal);}
  get(id:string,signal?:AbortSignal){return this.request<Collection>(path(id),'GET',undefined,signal);}
  create(title:string,fund_id:string){return this.request<Collection>('/collections','POST',{title,fund_id});}
- upload(id:string,expected_version:number,file:{filename:string;media_type:string;content_base64:string}){return this.request<Collection>(path(id)+'/sources','POST',{expected_version,...file});}
+ upload(id:string,expected_version:number,file:{filename:string;media_type:string;content_base64:string},options?:{document_id?:string;parent_revision_id?:string;reason?:string;period?:string;as_of?:string;idempotency_key?:string;task_id?:string}){return this.request<Collection>(path(id)+'/sources','POST',{expected_version,...file,...options});}
+ requirements(id:string,expected_version:number,requirements:Requirement[]){return this.request<Collection>(path(id)+'/requirements','PUT',{expected_version,requirements});}
+ evaluate(id:string,expected_version:number){return this.request<Collection>(path(id)+'/evaluate','POST',{expected_version});}
+ taskAction(id:string,expected_version:number,taskId:string,action:string,reason:string,source_id?:string){return this.request<Collection>(path(id)+'/tasks/'+encodeURIComponent(taskId)+'/actions','POST',{expected_version,action,reason,idempotency_key:requestKey('action:'+taskId+':'+action+':'+expected_version),...(source_id?{source_id}:{})});}
+ flag(id:string,expected_version:number,details:{title:string;reason:string;document_ids:string[];owner_party?:string;owner_actor_id:string;blocking?:boolean;idempotency_key?:string}){if(!details.owner_actor_id.trim())return Promise.reject(new Error('Choose a responsible person for this concern.'));return this.request<Collection>(path(id)+'/flags','POST',{expected_version,title:details.title,reason:details.reason,owner_actor_id:details.owner_actor_id,...(details.document_ids[0]?{document_id:details.document_ids[0]}:{}),...(details.blocking===undefined?{}:{blocking:details.blocking}),idempotency_key:requestKey(details.idempotency_key||'flag:'+id+':'+expected_version)});}
+ comparison(id:string,comparisonId:string,offset=0,limit=50,signal?:AbortSignal){return this.request<ComparisonPage>(path(id)+'/comparisons/'+encodeURIComponent(comparisonId)+'?offset='+offset+'&limit='+limit,'GET',undefined,signal);}
+ participants(id:string,signal?:AbortSignal){return this.request<CollectionMember[]>(path(id)+'/participants','GET',undefined,signal);}
+ members(id:string,expected_version:number,members:CollectionMember[]){return this.request<Collection>(path(id)+'/members','PUT',{expected_version,members});}
+ verifyCoverage(id:string,expected_version:number,sourceId:string,reason:string){return this.request<Collection>(path(id)+'/sources/'+encodeURIComponent(sourceId)+'/verify-coverage','POST',{expected_version,reason});}
+ reviewComparison(id:string,expected_version:number,comparisonId:string,reason:string){return this.request<Collection>(path(id)+'/comparisons/'+encodeURIComponent(comparisonId)+'/review','POST',{expected_version,reason});}
+ documentKeys(id:string,expected_version:number,documentId:string,business_keys:Record<string,{columns:string[];header_row:number}>){return this.request<Collection>(path(id)+'/documents/'+encodeURIComponent(documentId),'PUT',{expected_version,business_keys});}
  process(id:string,expected_version:number,options?:{stage:'extract';source_id:string}){return this.request<Collection>(path(id)+'/process','POST',{expected_version,...options});}
  rows(id:string,dataset:string,offset=0,limit=50,signal?:AbortSignal,row_id?:string){const query=new URLSearchParams({offset:String(offset),limit:String(limit),...(row_id?{row_id}:{})});return this.request<RowPage>(path(id)+'/datasets/'+encodeURIComponent(dataset)+'/rows?'+query,'GET',undefined,signal);}
  edit(id:string,expected_version:number,dataset_id:string,edits:Edit[],reason:string){return this.request<Collection>(path(id)+'/edits','POST',{expected_version,dataset_id,edits,reason});}
