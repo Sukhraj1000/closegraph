@@ -1,0 +1,1630 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>CloseGraph — Reporting review</title>
+<style>:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html > body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive > .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align="right"]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align="center"]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget > :not(.card, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls > .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls > .form-label > :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type="file"] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type="file"]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type="file"]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type="color"]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type="checkbox"]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: "";
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type="radio"] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type="radio"]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: "";
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed="true"],
+  [aria-selected="true"],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed="true"], [aria-selected="true"], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type="file"]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type="color"] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type="date"],
+    [type="datetime-local"],
+    [type="month"],
+    [type="time"],
+    [type="week"]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: "";
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget > svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html>body{padding:0}</style>
+<style>html{background:#101419;color-scheme:dark}html>body{margin:0;padding:24px;background:#101419!important}#closegraph-clear{max-width:1440px;margin:0 auto}</style></head>
+<body>
+<style>
+#closegraph-clear{--cf-bg:#171b20;--cf-panel:#20262d;--cf-side:#12161a;--cf-text:#f1f4f2;--cf-muted:#bec8c4;--cf-line:#404c54;--cf-input-line:#7d8a92;--cf-lime:#d5f6a1;--cf-dark:#17220b;--cf-amber:#f3cf89;--cf-amber-bg:#30291e;--cf-red:#ffbab2;--cf-red-bg:#342321;--cf-focus:#f1d46b;--cf-size:16px;color-scheme:dark;background:var(--cf-bg);color:var(--cf-text);font:400 var(--cf-size)/1.55 -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;width:100%;box-sizing:border-box;position:relative;border-radius:10px;border:1px solid var(--cf-line)}
+#closegraph-clear *{box-sizing:border-box}
+#closegraph-clear [hidden]{display:none!important}
+#closegraph-clear h1,#closegraph-clear h2,#closegraph-clear h3,#closegraph-clear p{margin:0;color:inherit}
+#closegraph-clear h1{font-size:2em;line-height:1.2;font-weight:500;letter-spacing:-.7px}
+#closegraph-clear h2{font-size:1.13em;line-height:1.4;font-weight:500;letter-spacing:-.1px}
+#closegraph-clear h3{font-size:1em;line-height:1.45;font-weight:500}
+#closegraph-clear strong{font-weight:500}
+#closegraph-clear button,#closegraph-clear input,#closegraph-clear select,#closegraph-clear textarea{font:inherit;color:inherit}
+#closegraph-clear button{cursor:pointer;border:0;background:none;margin:0;padding:0}
+#closegraph-clear button:disabled{cursor:not-allowed;background:#364047;color:#c3ccce;border-color:#697980}
+#closegraph-clear button:focus-visible,#closegraph-clear input:focus-visible,#closegraph-clear select:focus-visible,#closegraph-clear textarea:focus-visible,#closegraph-clear summary:focus-visible{box-shadow:0 0 0 4px var(--cf-focus)}
+#closegraph-clear button:hover:not(:disabled){text-decoration-thickness:2px}
+#closegraph-clear .cf-primary{background:var(--cf-lime);color:var(--cf-dark);padding:11px 18px;min-height:46px;border-radius:6px;font-weight:500;font-size:.94em;display:inline-flex;align-items:center;justify-content:center;gap:12px;text-align:center}
+#closegraph-clear .cf-primary:hover:not(:disabled){background:#e3ffc0}
+#closegraph-clear .cf-secondary{background:var(--cf-panel);border:1px solid var(--cf-input-line);padding:10px 16px;min-height:46px;border-radius:6px;font-size:.94em;display:inline-flex;align-items:center;justify-content:center;gap:9px;text-align:center}
+#closegraph-clear .cf-link{min-height:40px;padding:7px 0;color:var(--cf-lime);text-align:left;text-decoration:underline;text-underline-offset:4px;font-size:.9em}
+#closegraph-clear .cf-quiet{font-size:.875em;color:var(--cf-muted)}
+#closegraph-clear .cf-caption{font-size:.8125em;color:var(--cf-muted);line-height:1.6}
+#closegraph-clear .cf-number{font-variant-numeric:tabular-nums;letter-spacing:-.25px;white-space:nowrap}
+#closegraph-clear .cf-top{display:flex;justify-content:space-between;gap:20px;align-items:center;padding:21px 24px;border-bottom:1px solid var(--cf-line);background:var(--cf-side);border-radius:10px 10px 0 0}
+#closegraph-clear .cf-brand{font-size:1.35em;letter-spacing:-.7px;display:flex;align-items:center;gap:10px;font-weight:500}
+#closegraph-clear .cf-brand-mark{height:23px;width:23px;border-left:5px solid var(--cf-lime);border-bottom:5px solid var(--cf-lime);border-radius:0 0 0 5px;display:block;position:relative;margin-right:2px}
+#closegraph-clear .cf-brand-mark:after{content:'';position:absolute;right:0;top:0;width:9px;height:9px;border:2px solid var(--cf-lime);border-radius:2px}
+#closegraph-clear .cf-top-right{display:flex;align-items:center;gap:20px}
+#closegraph-clear .cf-user{font-size:.875em;color:var(--cf-muted)}
+#closegraph-clear .cf-demo-trigger{min-height:40px;font-size:.875em;color:var(--cf-text);text-decoration:underline;text-underline-offset:4px}
+#closegraph-clear .cf-demo{padding:20px 24px;background:var(--cf-panel);border-bottom:1px solid var(--cf-line)}
+#closegraph-clear .cf-demo-fields{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;margin-top:14px}
+#closegraph-clear .cf-demo label{display:grid;gap:5px;font-size:.875em}
+#closegraph-clear .cf-demo select{padding:10px 12px;border:1px solid var(--cf-input-line);background:var(--cf-bg);border-radius:5px;min-height:44px;max-width:350px}
+#closegraph-clear .cf-layout{display:grid;grid-template-columns:166px minmax(0,1fr)}
+#closegraph-clear .cf-sidebar{background:var(--cf-side);padding:26px 12px 20px;border-right:1px solid var(--cf-line);border-radius:0 0 0 10px;display:flex;flex-direction:column}
+#closegraph-clear .cf-pack-name{font-size:.875em;font-weight:500;padding:0 10px 19px;color:var(--cf-muted)}
+#closegraph-clear .cf-nav{display:grid;gap:8px}
+#closegraph-clear .cf-nav button{padding:11px 10px;min-height:46px;text-align:left;border-radius:6px;font-size:.9em;color:var(--cf-muted);display:flex;align-items:center;gap:10px;border-left:3px solid transparent}
+#closegraph-clear .cf-nav button[aria-current=page]{color:var(--cf-lime);background:#283026;border-left-color:var(--cf-lime);font-weight:500}
+#closegraph-clear .cf-nav button:hover{background:#252d32}
+#closegraph-clear .cf-nav-num{font-size:.9em;opacity:1;color:inherit}
+#closegraph-clear .cf-sidebar-end{padding:26px 10px 0;margin-top:auto;font-size:.8125em;color:var(--cf-muted)}
+#closegraph-clear .cf-main{min-width:0;padding:27px 28px 20px}
+#closegraph-clear .cf-page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:26px}
+#closegraph-clear .cf-page-head p{font-size:.875em;color:var(--cf-muted);margin-top:9px;max-width:620px}
+#closegraph-clear .cf-version{font-size:.8125em;color:var(--cf-muted);white-space:nowrap;padding-top:8px}
+#closegraph-clear .cf-task{padding:21px 22px;background:var(--cf-panel);border-radius:8px;border-left:3px solid var(--cf-lime);margin-bottom:28px}
+#closegraph-clear .cf-task[data-tone=warning]{border-left-color:var(--cf-amber);background:var(--cf-amber-bg)}
+#closegraph-clear .cf-task[data-tone=danger]{border-left-color:var(--cf-red);background:var(--cf-red-bg)}
+#closegraph-clear .cf-task h2{font-size:1.2em}
+#closegraph-clear .cf-task p{margin:7px 0 0;line-height:1.6;max-width:640px}
+#closegraph-clear .cf-task .cf-primary,#closegraph-clear .cf-task .cf-secondary{margin-top:18px}
+#closegraph-clear .cf-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px}
+#closegraph-clear .cf-separator{border-top:1px solid var(--cf-line);margin-top:24px;padding-top:22px}
+#closegraph-clear .cf-section-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 15px}
+#closegraph-clear .cf-files{list-style:none;padding:0;margin:0}
+#closegraph-clear .cf-files li{padding:14px 0;border-bottom:1px solid var(--cf-line)}
+#closegraph-clear .cf-files button{display:block;width:100%;min-height:44px;text-align:left}
+#closegraph-clear .cf-files .cf-file-name{color:var(--cf-text);display:block;font-size:.94em}
+#closegraph-clear .cf-files .cf-file-name:after{content:' ↗';color:var(--cf-lime)}
+#closegraph-clear .cf-files .cf-caption{display:block;margin-top:4px}
+#closegraph-clear .cf-people{margin:0}
+#closegraph-clear .cf-people>div{padding:13px 0;border-bottom:1px solid var(--cf-line)}
+#closegraph-clear .cf-people dt{font-size:.8125em;color:var(--cf-muted);margin-bottom:4px}
+#closegraph-clear .cf-people dd{margin:0;font-size:.94em}
+#closegraph-clear .cf-details{border-top:1px solid var(--cf-line);margin-top:22px;padding-top:3px}
+#closegraph-clear summary{cursor:pointer;min-height:46px;padding:12px 3px;color:var(--cf-text);font-size:.9em}
+#closegraph-clear .cf-details-body{padding:4px 0 15px;font-size:.875em;color:var(--cf-muted)}
+#closegraph-clear .cf-details-body p+p{margin-top:10px}
+#closegraph-clear .cf-record{padding:13px 0;border-bottom:1px solid var(--cf-line)}
+#closegraph-clear .cf-record:last-child{border-bottom:0}
+#closegraph-clear .cf-record strong{color:var(--cf-text);display:block;margin-bottom:4px}
+#closegraph-clear .cf-status-list{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+#closegraph-clear .cf-status-list>div{min-width:0}
+#closegraph-clear .cf-status-list dt{color:var(--cf-muted);font-size:.9em;margin-bottom:4px}
+#closegraph-clear .cf-status-list dd{margin:0;color:var(--cf-text)}
+#closegraph-clear .cf-source-title{margin-bottom:14px}
+#closegraph-clear .cf-source-switch{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--cf-line);margin-bottom:15px}
+#closegraph-clear .cf-source-switch button{padding:9px 10px;min-height:44px;font-size:.875em;border-bottom:3px solid transparent;color:var(--cf-muted)}
+#closegraph-clear .cf-source-switch button[aria-pressed=true]{border-bottom-color:var(--cf-lime);color:var(--cf-text)}
+#closegraph-clear .cf-paper{background:#fbfcf8;color:#26322c;border-radius:5px;padding:23px;min-height:300px;--cf-focus:#527c28}
+#closegraph-clear .cf-paper .cf-caption,#closegraph-clear .cf-paper .cf-quiet{color:#526258}
+#closegraph-clear .cf-paper h3{font-size:1.06em;margin:8px 0 15px}
+#closegraph-clear .cf-paper-row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:12px 0;border-bottom:1px solid #ced6ce;font-size:.94em}
+#closegraph-clear .cf-paper-total{background:#e6efd9;padding:14px;margin:18px -8px 0;border-radius:3px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+#closegraph-clear .cf-paper-total strong{font-size:1.5em;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+#closegraph-clear .cf-sheet{border-collapse:collapse;width:100%;font-size:.9em;margin-top:15px}
+#closegraph-clear .cf-sheet th,#closegraph-clear .cf-sheet td{padding:11px 8px;border:1px solid #bdc9bd;text-align:left}
+#closegraph-clear .cf-sheet th{font-weight:400;background:#eef2e9;color:#526258}
+#closegraph-clear .cf-sheet td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+#closegraph-clear .cf-sheet .cf-highlight td{background:#e6efd9}
+#closegraph-clear .cf-difference{display:flex;gap:23px;padding:0 0 19px;border-bottom:1px solid var(--cf-line);margin:0 0 20px;flex-wrap:wrap}
+#closegraph-clear .cf-difference dt{font-size:.8125em;color:var(--cf-muted);margin-bottom:5px}
+#closegraph-clear .cf-difference dd{margin:0;font-size:1.5em;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
+#closegraph-clear .cf-field{margin:0 0 18px;display:block}
+#closegraph-clear .cf-field>span{display:block;font-size:.94em;font-weight:500;margin-bottom:7px}
+#closegraph-clear .cf-field input,#closegraph-clear .cf-field textarea{display:block;width:100%;padding:11px 13px;background:#12171c;border:1px solid var(--cf-input-line);border-radius:5px;color:var(--cf-text);min-height:46px;font-size:1em}
+#closegraph-clear .cf-field textarea{min-height:92px;resize:vertical;line-height:1.55}
+#closegraph-clear .cf-field input[aria-invalid=true],#closegraph-clear .cf-field textarea[aria-invalid=true]{border:2px solid var(--cf-red)}
+#closegraph-clear .cf-field .cf-caption{display:block;margin-top:7px;font-weight:400}
+#closegraph-clear .cf-error{color:var(--cf-red);font-size:.9em;margin-bottom:14px}
+#closegraph-clear .cf-form-footer{margin-top:18px}
+#closegraph-clear .cf-form-footer .cf-primary{width:100%}
+#closegraph-clear .cf-form-footer p{margin-top:10px}
+#closegraph-clear .cf-table-wrap{overflow-x:auto}
+#closegraph-clear .cf-table{width:100%;border-collapse:collapse;font-size:.9em}
+#closegraph-clear .cf-table th{text-align:left;color:var(--cf-muted);font-size:.94em;font-weight:400;padding:13px 10px;border-bottom:1px solid var(--cf-line)}
+#closegraph-clear .cf-table td{padding:15px 10px;border-bottom:1px solid var(--cf-line);vertical-align:middle}
+#closegraph-clear .cf-table td:first-child{font-weight:500}
+#closegraph-clear .cf-table .cf-num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#closegraph-clear .cf-table small{display:block;font-size:.88em;font-weight:400;color:var(--cf-muted);margin-top:4px}
+#closegraph-clear .cf-table tr[data-problem=true]{background:#2f2820}
+#closegraph-clear .cf-tag{font-size:.875em;display:inline-flex;gap:6px;align-items:center;white-space:nowrap;color:var(--cf-lime)}
+#closegraph-clear .cf-tag[data-state=warning]{color:var(--cf-amber)}
+#closegraph-clear .cf-tag[data-state=danger]{color:var(--cf-red)}
+#closegraph-clear .cf-checks{list-style:none;padding:0;margin:0}
+#closegraph-clear .cf-checks li{border-bottom:1px solid var(--cf-line);padding:12px 0}
+#closegraph-clear .cf-checks li:last-child{border:0}
+#closegraph-clear .cf-check-line{display:flex;justify-content:space-between;gap:18px;align-items:baseline}
+#closegraph-clear .cf-checks p{margin-top:7px;font-size:.94em}
+#closegraph-clear .cf-controls{display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:24px}
+#closegraph-clear .cf-candidates{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+#closegraph-clear .cf-candidate{padding:14px;background:var(--cf-panel);border-radius:5px}
+#closegraph-clear .cf-candidate strong{font-size:1.25em;display:block;margin-top:6px;font-variant-numeric:tabular-nums}
+#closegraph-clear .cf-review-points{list-style:none;padding:0;margin:15px 0 22px}
+#closegraph-clear .cf-review-points li{padding:8px 0;color:var(--cf-muted);font-size:.9em;display:flex;align-items:baseline;gap:10px}
+#closegraph-clear .cf-review-points li span:first-child{color:var(--cf-lime)}
+#closegraph-clear .cf-checkbox{display:flex;gap:12px;align-items:flex-start;padding:10px 0;margin:8px 0 16px;font-size:.94em;cursor:pointer}
+#closegraph-clear .cf-checkbox input{width:20px;height:20px;flex:0 0 20px;margin:3px 0 0;accent-color:var(--cf-lime)}
+#closegraph-clear .cf-export{margin-top:18px;padding:18px;background:var(--cf-panel);border-radius:6px}
+#closegraph-clear .cf-export ul{margin:10px 0;padding-left:20px;font-size:.9em}
+#closegraph-clear .cf-export li{margin:7px 0;overflow-wrap:anywhere}
+#closegraph-clear .cf-global-footer{padding:19px 28px;border-top:1px solid var(--cf-line);font-size:.8125em;color:var(--cf-muted);display:flex;justify-content:space-between;align-items:center;gap:16px}
+#closegraph-clear .cf-global-footer button{font-size:inherit;min-height:36px;text-decoration:underline;text-underline-offset:4px;color:var(--cf-text)}
+#closegraph-clear .cf-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#closegraph-clear .cf-skip{position:absolute;left:18px;top:12px;transform:translateY(-180%);z-index:5;background:var(--cf-lime);color:var(--cf-dark);padding:12px 18px;border-radius:5px}
+#closegraph-clear .cf-skip:focus{transform:none}
+</style>
+<section id="closegraph-clear" aria-label="CloseGraph reporting pack prototype">
+  <button class="cf-skip" type="button" data-action="skip">Skip to current task</button>
+  <header class="cf-top"><div class="cf-brand"><span class="cf-brand-mark" aria-hidden="true"></span>CloseGraph</div><div class="cf-top-right"><span class="cf-user" data-person>Jamie Park · Accountant</span><button type="button" class="cf-demo-trigger" data-action="demo" aria-expanded="false" aria-controls="cf-demo-options">Example settings</button></div></header>
+  <section id="cf-demo-options" class="cf-demo" hidden aria-label="Example settings"><h2>Explore this prototype</h2><p class="cf-quiet">Fictional fund data. Actions only change this example; no files are sent or published.</p><div class="cf-demo-fields"><label>Scenario<select data-scenario><option value="correction">Fee correction — start here</option><option value="missing">Missing fee agreement</option><option value="disagreement">Document readers disagree</option><option value="dependency">Unknown effect on a statement</option><option value="provider">PDF processing unavailable</option><option value="ready">Ready for independent review</option><option value="stale">Source changed after approval</option><option value="template">Unsupported workbook feature</option></select></label><label>Person using the example<select data-role><option value="accountant">Jamie · Accountant</option><option value="reviewer">Morgan · Independent reviewer</option></select></label><button type="button" class="cf-secondary" data-action="restart">Restart this scenario</button></div></section>
+  <div class="cf-layout"><aside class="cf-sidebar"><p class="cf-pack-name">Q2 2026 pack</p><nav class="cf-nav" aria-label="Pack pages"><button type="button" data-screen="overview" aria-current="page"><span class="cf-nav-num" aria-hidden="true">01</span>Overview</button><button type="button" data-screen="correction"><span class="cf-nav-num" aria-hidden="true">02</span>Correction</button><button type="button" data-screen="checks"><span class="cf-nav-num" aria-hidden="true">03</span>Checks</button><button type="button" data-screen="review"><span class="cf-nav-num" aria-hidden="true">04</span>Approval</button></nav><div class="cf-sidebar-end">Harbour Fund I<br>Quarter ended 30 June</div></aside>
+  <main id="cf-main" class="cf-main"><div class="cf-page-head"><div><h1 data-title>Q2 reporting pack</h1><p data-subtitle>Harbour Fund I · April–June 2026 · USD</p></div><span class="cf-version" data-version>Version 2</span></div><div data-content></div></main></div>
+  <footer class="cf-global-footer"><span>Interactive prototype · fictional data</span><button type="button" data-action="demo" aria-expanded="false" aria-controls="cf-demo-options">Explore all 8 scenarios</button></footer><div class="cf-sr" aria-live="polite" aria-atomic="true" data-announce></div>
+</section>
+<script>
+(() => {
+  const root=document.getElementById('closegraph-clear'),q=s=>root.querySelector(s);
+  const EXPECTED=6000000,ASSETS=2075000000,OTHER=67500000,OLD_NAV=2000000000;
+  const fmt=c=>new Intl.NumberFormat('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2}).format(c/100);
+  const dollars=c=>'$'+new Intl.NumberFormat('en-GB',{maximumFractionDigits:2}).format(c/100);
+  const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const baseEvents=()=>[{v:1,title:'Original pack received',text:'The original workbook is retained.'},{v:2,title:'Fee rule updated',text:'The approved quarterly fee is $60,000. The pack still reports $75,000.'}];
+  const state={scenario:'correction',screen:'overview',role:'accountant',source:'rule',version:2,fee:7500000,fresh:true,evidence:true,dependencies:true,provider:false,stale:false,template:true,soft:false,resolved:false,resolution:'',attest:false,input:'60000.00',reason:'Apply the 1.20% annual rate in the approved fee rule (FT-002).',reviewReason:'The fee matches the approved rule and the updated statements agree.',error:'',errorField:'',events:baseEvents(),approvals:[],exportOpen:false};
+  const values=()=>{const liability=OTHER+state.fee,nav=ASSETS-liability;return {liability,nav,capital:state.fresh?nav:OLD_NAV};};
+  function checks(){const v=values();let c=[
+    {name:'Required documents are available',status:state.evidence?'PASS':'UNKNOWN',detail:state.evidence?'Capital input, fee rule and original reporting pack are linked.':'The original fee agreement is missing. Its terms cannot be checked.'},
+    {name:'Fee matches the approved rule',status:!state.evidence?'UNKNOWN':state.fee===EXPECTED?'PASS':'FAIL',detail:state.evidence?'Expected $60,000.00; recorded $'+fmt(state.fee)+'. Difference $'+fmt(state.fee-EXPECTED)+'. Allowed difference $0.01.':'There is no available approved rule to check against.'},
+    {name:'Net assets agree with the balance sheet',status:'PASS',detail:'Assets $'+fmt(ASSETS)+' less liabilities $'+fmt(v.liability)+' equals net assets $'+fmt(v.nav)+'. Difference $0.00; allowed difference $0.01.'},
+    {name:'Capital statement agrees with net assets',status:v.capital===v.nav?'PASS':'FAIL',detail:'Capital statement $'+fmt(v.capital)+'; net assets $'+fmt(v.nav)+'. Difference $'+fmt(v.capital-v.nav)+'. Allowed difference $0.01.'},
+    {name:'All affected outputs are accounted for',status:state.dependencies?'PASS':'UNKNOWN',detail:state.dependencies?'The recorded dependencies cover fees, liabilities, net assets and the capital statement.':'The fee’s relationship to the capital statement is unknown. Its review cannot be assumed unaffected.'}
+  ];if(state.provider)c=c.map(x=>({...x,status:'UNKNOWN',detail:'Not evaluated because a required PDF could not be processed.'}));if(state.stale)c=c.map(x=>({...x,status:'PENDING',detail:'These results belong to the previous source version. Run the checks again.'}));return c;}
+  const hardPass=()=>checks().every(c=>c.status==='PASS')&&state.template;
+  const approved=()=>state.approvals.some(a=>a.v===state.version);
+  const releasable=()=>hardPass()&&(!state.soft||state.resolved)&&approved();
+  const route=()=>!hardPass()?'Blocked':state.soft&&!state.resolved?'Needs review':'Ready for quick review';
+  const say=t=>q('[data-announce]').textContent=t;
+  const action=(label,id,kind='primary')=>`<button type="button" class="cf-${kind}" data-action="${id}"${kind==='primary'?' data-primary':''}>${esc(label)}</button>`;
+  const details=(label,body,open=false)=>`<details class="cf-details"${open?' open':''}><summary>${esc(label)}</summary><div class="cf-details-body">${body}</div></details>`;
+  const tag=status=>`<span class="cf-tag" data-state="${status==='PASS'?'good':status==='FAIL'?'danger':'warning'}"><span aria-hidden="true">${status==='PASS'?'✓':status==='FAIL'?'×':'!'}</span>${{PASS:'Passed',FAIL:'Failed',UNKNOWN:'Unknown',PENDING:'Not checked'}[status]}</span>`;
+  function problem(){
+    if(state.provider)return {title:'The required PDF could not be processed',text:'PDF processing is not available for this workspace. Financial checks have not run, so the pack cannot be approved.',next:'Use an approved processing service or provide the required data in a supported format.',tone:'danger'};
+    if(!state.evidence)return {title:'The fee agreement is missing',text:'The pack refers to an approved fee rule, but the source agreement is not here. Add it before correcting or approving the fee.',button:'Add example agreement',id:'receive',tone:'warning'};
+    if(state.stale)return {title:'The source changed after approval',text:'Version 4 was approved. This is version '+state.version+', based on a newer source. Run the checks again, then ask for a new review.',button:'Run checks again',id:'recheck',tone:'warning'};
+    if(!state.dependencies)return {title:'We cannot verify the effect on the capital statement',text:'The fee may affect this statement, but the relationship has not been established. This pack is blocked until that dependency is verified.',next:'An authorised accountant needs to confirm the dependency before checking the statement.',tone:'warning'};
+    if(!state.template)return {title:'This workbook contains an unsupported feature',text:'Its output depends on a macro that CloseGraph cannot evaluate. Financial checks passed, but an equivalent workbook cannot be produced.',next:'Use a supported template or calculation before approving the output.',tone:'warning'};
+    return null;
+  }
+  function task(title,text,label,id,tone='normal',extra=''){return `<section class="cf-task" data-tone="${tone}" aria-label="Next action"><h2>${esc(title)}</h2><p>${esc(text)}</p>${label?action(label,id):''}${extra}</section>`;}
+  function issueTask(){const p=problem();return p?task(p.title,p.text,state.role==='accountant'?p.button:null,p.id,p.tone,p.next?`<p class="cf-quiet">${esc(p.next)}</p>`:state.role!=='accountant'&&p.button?`<p class="cf-quiet">Jamie, the accountant, needs to take this step.</p>${action('Continue as accountant','accountant','secondary')}`:''):'';}
+  function statusDetails(){const c=checks(),count=c.filter(x=>x.status==='PASS').length;const latest=state.approvals.at(-1);return details('Processing and review details',`<dl class="cf-status-list"><div><dt>Processing</dt><dd>${state.provider?'Unavailable':state.stale?'Recheck needed':!state.template?'Output blocked':'Completed'}</dd></div><div><dt>Required checks</dt><dd>${state.provider?'Not evaluated':state.stale?'Results are out of date':count+' of 5 passed'}</dd></div><div><dt>Review status</dt><dd>${route()}</dd></div><div><dt>Approval</dt><dd>${approved()?'Approved for version '+state.version:latest?'Version '+latest.v+' only — historical':'Not approved'}</dd></div><div><dt>Source currency</dt><dd>${state.stale?'New source; checks are stale':'Current observed version'}</dd></div><div><dt>Routing policy</dt><dd>${state.soft?'Document review v1':'Native tabular v1'} · example policy</dd></div></dl><p>Passing checks makes this version eligible for review. An independent person still has to approve it.</p>`);}
+  function history(){return details('Version and review history',state.events.slice().reverse().map(e=>`<div class="cf-record"><strong>Version ${e.v} · ${esc(e.title)}</strong><p>${esc(e.text)}</p>${e.results?details('Check results saved with this version',checkList(e.results)):''}</div>`).join(''));}
+  function checkList(list=checks()){return `<ul class="cf-checks">${list.map(c=>`<li><div class="cf-check-line"><strong>${esc(c.name)}</strong>${tag(c.status)}</div><p>${esc(c.detail)}</p></li>`).join('')}</ul>`;}
+  function overview(){
+    let next=issueTask();const v=values();
+    if(!next){if(state.fee!==EXPECTED)next=task('The management fee needs a correction','The pack reports '+dollars(state.fee)+'. The approved fee is $60,000. Start by checking the rule and source amount.','Review the fee','correction','warning');else if(!state.fresh)next=task('One statement still needs updating','The fee is corrected, but the capital statement still uses the original amount.','Check the updated pack','checks','warning');else if(state.soft&&!state.resolved)next=task('Two document readers found different fees','The required checks passed. Review the source evidence and record which amount is supported.','Review the difference','correction','warning');else if(approved())next=task('Version '+state.version+' is approved','Morgan Ellis approved this version. The reviewed values and export contents are ready to inspect.','View the approved pack','review');else next=task('The pack is ready for independent review','All five required checks passed. Morgan can now review the corrected values and supporting documents.','Review the updated pack','review');}
+    return next+`<div class="cf-grid"><section><div class="cf-section-head"><h2>Documents in this pack</h2><span class="cf-caption">${state.evidence?'3 available':'1 missing'}</span></div><ul class="cf-files"><li><button type="button" data-source-open="rule"><span class="cf-file-name">Fee agreement</span><span class="cf-caption">${state.evidence?'Approved rule · FT-002':'Missing · needed to verify the fee'}</span></button></li><li><button type="button" data-source-open="capital"><span class="cf-file-name">Opening capital</span><span class="cf-caption">Capital input · $20,000,000</span></button></li><li><button type="button" data-source-open="original"><span class="cf-file-name">Original reporting pack</span><span class="cf-caption">Version 2 · original fee $75,000</span></button></li></ul></section><section><h2>Who does what</h2><dl class="cf-people"><div><dt>Prepares and corrects the pack</dt><dd>Jamie Park · Accountant</dd></div><div><dt>Reviews and approves the correction</dt><dd>Morgan Ellis · Independent reviewer</dd></div><div><dt>Reporting period</dt><dd>1 April–30 June 2026 · USD</dd></div></dl></section></div>`+statusDetails()+history();
+  }
+  function sourcePaper(){
+    if(state.source==='rule')return `<div class="cf-paper"><p class="cf-caption">Fee agreement · approved by Dana Lee</p><h3>Quarterly management fee</h3><div class="cf-paper-row"><span>Opening fee eligible capital</span><strong class="cf-number">$20,000,000</strong></div><div class="cf-paper-row"><span>Annual rate</span><strong>1.20%</strong></div><div class="cf-paper-row"><span>Quarter of the annual fee</span><strong>¼</strong></div><div class="cf-paper-total"><span>Expected fee</span><strong>$60,000</strong></div><p class="cf-caption" style="margin-top:15px">FT-002 · clause 2 · Q2 2026</p></div>`;
+    if(state.source==='capital')return `<div class="cf-paper"><p class="cf-caption">capital-inputs.xlsx · source ${state.scenario==='stale'?'v2':'v1'}</p><h3>Opening capital</h3><table class="cf-sheet"><caption class="cf-caption">Capital sheet · original cell values</caption><thead><tr><th scope="col">Cell</th><th scope="col">Field</th><th scope="col">Value</th></tr></thead><tbody><tr><td>B2</td><td>Fund</td><td>Harbour I</td></tr><tr><td>B3</td><td>Currency</td><td>USD</td></tr><tr class="cf-highlight"><td>B4</td><td>Fee eligible capital</td><td>20,000,000</td></tr><tr><td>B5</td><td>Period</td><td>Q2 2026</td></tr></tbody></table></div>`;
+    return `<div class="cf-paper"><p class="cf-caption">quarterly-pack-v2.xlsx · original version</p><h3>Original reported fee</h3><div class="cf-paper-row"><span>Management fee</span><strong class="cf-number">$75,000</strong></div><div class="cf-paper-row"><span>Currency</span><strong>USD</strong></div><div class="cf-paper-row"><span>Period</span><strong>Q2 2026</strong></div><p class="cf-caption" style="margin-top:20px">Fees sheet · cell F18<br>The original value remains in the version history.</p></div>`;
+  }
+  function source(){return `<section aria-label="Supporting documents"><h2 class="cf-source-title">Check the source</h2><div class="cf-source-switch" role="group" aria-label="Source document">${[['rule','Fee rule'],['capital','Capital'],['original','Original pack']].map(([id,label])=>`<button type="button" data-source="${id}" aria-pressed="${state.source===id}" aria-controls="cf-source-page">${label}</button>`).join('')}</div><div id="cf-source-page">${sourcePaper()}</div>${details('Source and calculation details',`<p>Capital!B4 provides the raw value 20000000 in USD. The approved quarterly fee is 20,000,000 × 1.20% ÷ 4 = 60,000.00.</p><p>The rule, entity, currency and period are recorded together. Original files and the reported value in Fees!F18 remain unchanged.</p><p>${state.soft?'Document reader observations are synthetic replay examples. Reader A: 60,000 USD (score 0.96). Reader B: 75,000 USD (score 0.98). Scores are uncalibrated; they do not establish correctness. Agreement: DISAGREE.':'Extraction: native workbook values. Confidence: not applicable. A second parser was not run. Quick review uses the native-tabular-v1 example policy.'}</p>`)}</section>`;}
+  function correction(){if(problem())return issueTask()+statusDetails();
+    const wrong=state.fee!==EXPECTED;
+    let right;
+    if(state.soft){right=`<section><h2>Resolve the different readings</h2><p class="cf-quiet" style="margin-top:8px">Both readers used the same fund, period, currency and scale.</p><div class="cf-candidates"><div class="cf-candidate"><span class="cf-caption">Reader A</span><strong>$60,000</strong></div><div class="cf-candidate"><span class="cf-caption">Reader B</span><strong>$75,000</strong></div></div><p class="cf-quiet">The fee rule on the left supports $60,000. Record the evidence for your decision.</p>${state.resolved?`<p style="margin-top:18px">✓ Resolution recorded by Morgan. Both original readings are retained.</p>${action('Continue to approval','review')}`:state.role==='reviewer'?`<label class="cf-field" style="margin-top:18px"><span>Reason for accepting $60,000</span><textarea id="cf-resolution" data-input="resolution" required aria-describedby="cf-resolution-help">${esc(state.resolution)}</textarea><span id="cf-resolution-help" class="cf-caption">Refer to the source and approved fee rule.</span></label>${state.error?`<p class="cf-error" role="alert">${esc(state.error)}</p>`:''}${action('Record review decision','resolve')}`:`<div class="cf-form-footer"><p class="cf-quiet">Morgan needs to resolve this difference independently.</p>${action('Continue as reviewer','reviewer')}<p class="cf-caption">Demo role switch; no request is sent.</p></div>`}</section>`;}
+    else if(state.role!=='accountant'){right=`<section><h2>Fee in version ${state.version}</h2><dl class="cf-difference" style="margin-top:18px"><div><dt>Current pack</dt><dd>${dollars(state.fee)}</dd></div><div><dt>Approved fee</dt><dd>$60,000</dd></div></dl><p class="cf-quiet">${wrong?'The fee does not match the approved rule. Jamie must correct it before you can approve the pack.':'The fee matches the rule. You can inspect the full check results before approval.'}</p><div class="cf-form-footer">${wrong?action('Continue as accountant','accountant'):action('Review check results','checks')}<p class="cf-caption">${wrong?'Demo role switch; no request is sent.':'Source documents remain available for review.'}</p></div></section>`;}
+    else right=`<section><h2>Enter the corrected fee</h2><dl class="cf-difference" style="margin-top:18px"><div><dt>In this pack</dt><dd>${dollars(state.fee)}</dd></div><div><dt>Approved amount</dt><dd>$60,000</dd></div></dl><label class="cf-field"><span>Management fee (USD)</span><input id="cf-amount" data-input="amount" required inputmode="decimal" type="text" value="${esc(state.input)}" aria-describedby="cf-amount-help${state.errorField==='amount'?' cf-form-error':''}" aria-invalid="${state.errorField==='amount'}"><span id="cf-amount-help" class="cf-caption">Enter the amount supported by the approved rule.</span></label><label class="cf-field"><span>Why are you changing it?</span><textarea id="cf-reason" data-input="reason" required aria-describedby="cf-reason-help${state.errorField==='reason'?' cf-form-error':''}" aria-invalid="${state.errorField==='reason'}">${esc(state.reason)}</textarea><span id="cf-reason-help" class="cf-caption">This explanation will appear in the review history.</span></label>${state.error?`<p id="cf-form-error" class="cf-error" role="alert">${esc(state.error)}</p>`:''}<div class="cf-form-footer">${action('Save correction','save')}<p class="cf-caption">Creates a new version and checks the affected values. The original pack is kept.</p></div></section>`;
+    return `<div class="cf-grid">${source()}${right}</div>`;
+  }
+  function changesTable(){const v=values(),c=checks(),pending=state.provider||state.stale;const rows=[['Management fee','Fees!F18',7500000,state.fee,c[1].status],['Total liabilities','NAV!H16',75000000,v.liability,c[2].status],['Net asset value','NAV!H22',OLD_NAV,v.nav,c[2].status],['Capital statement','Capital!G24',OLD_NAV,v.capital,state.dependencies?c[3].status:'UNKNOWN']];return `<div class="cf-table-wrap"><table class="cf-table"><caption class="cf-sr">Original and updated values in USD</caption><thead><tr><th scope="col">Pack value</th><th scope="col" class="cf-num">Original v2</th><th scope="col" class="cf-num">Version ${state.version}</th><th scope="col">Check</th></tr></thead><tbody>${rows.map(r=>`<tr data-problem="${r[4]!=='PASS'}"><td>${r[0]}<small>${r[1]}</small></td><td class="cf-num">${fmt(r[2])}</td><td class="cf-num">${pending||(r[0]==='Capital statement'&&!state.dependencies)?'—':fmt(r[3])}</td><td>${tag(r[4])}</td></tr>`).join('')}</tbody></table></div>`;}
+  function checkScreen(){const c=checks(),count=c.filter(x=>x.status==='PASS').length;let intro=issueTask();if(!intro){if(state.fee!==EXPECTED)intro=task('The fee still does not match the rule','The entered amount is '+dollars(state.fee)+'. The supported fee is $60,000. The failed check stays in this version’s history.','Review the fee','correction','warning');else if(!state.fresh)intro=task('The capital statement has not updated','The fee and net asset value are corrected. The capital statement still shows $20,000,000; it should show $20,015,000.',state.role==='accountant'?'Update capital statement':'Continue as accountant',state.role==='accountant'?'repair':'accountant','warning');else if(state.soft&&!state.resolved)intro=task('The values pass checks, but need a review','The two document readers disagree about the fee. An independent reviewer needs to resolve the difference.','Review the source readings','correction','warning');else intro=task('All required checks passed','The updated values agree. An independent reviewer can now inspect and approve version '+state.version+'.','Continue to approval','review');}
+    return intro+`<div class="cf-section-head"><h2>Changed values</h2><span class="cf-caption">USD · ${state.provider?'not evaluated':state.stale?'recheck needed':count+' of 5 checks passed'}</span></div>`+changesTable()+details('All 5 check results',checkList())+statusDetails()+history();}
+  function candidate(){const v=values();return `<section><div class="cf-section-head"><h2>Updated pack preview</h2><span class="cf-caption">Version ${state.version}</span></div><div class="cf-paper"><p class="cf-caption">Harbour Fund I · Q2 2026 · USD</p><h3>Quarterly reporting summary</h3><div class="cf-paper-row"><span>Management fee</span><strong class="cf-number">${dollars(state.fee)}</strong></div><div class="cf-paper-row"><span>Total assets</span><strong class="cf-number">${dollars(ASSETS)}</strong></div><div class="cf-paper-row"><span>Total liabilities</span><strong class="cf-number">${dollars(v.liability)}</strong></div><div class="cf-paper-total"><span>Net asset value</span><strong>${dollars(v.nav)}</strong></div><div class="cf-paper-row"><span>Capital statement</span><strong class="cf-number">${dollars(v.capital)}</strong></div><p class="cf-caption" style="margin-top:18px">Candidate workbook · not yet distributed</p></div><div class="cf-controls">${action('Inspect sources','correction','link')}${action('Inspect all checks','checks','link')}</div></section>`;}
+  function review(){if(!hardPass())return (issueTask()||task('This pack is not ready for approval','At least one required check failed. Resolve it and run the checks before asking for approval.','View the failed checks','checks','warning'))+statusDetails();
+    if(state.soft&&!state.resolved)return task('Resolve the document readings first','The financial checks passed, but the unresolved difference still needs an evidence-backed decision.','Review the source readings','correction','warning')+statusDetails();
+    let panel;
+    if(approved())panel=`<section><h2>Approved by Morgan Ellis</h2><p class="cf-quiet" style="margin-top:10px">Approval applies to version ${state.version} and the sources shown in this review.</p><ul class="cf-review-points"><li><span aria-hidden="true">✓</span>All 5 required checks passed</li><li><span aria-hidden="true">✓</span>Independent approval recorded</li><li><span aria-hidden="true">✓</span>Current source and output version</li></ul>${action('Preview export contents','export')}<p class="cf-caption" style="margin-top:12px">Prototype only. No workbook is generated or published.</p>${state.exportOpen?`<div class="cf-export"><h3>Reviewed pack and audit record</h3><ul><li>harbour-q2-v${state.version}-reviewed.xlsx</li><li>review-manifest.json</li></ul><p class="cf-caption">Version ${state.version} · 3 sources · FT-002 · checks and Morgan’s decision included</p></div>`:''}</section>`;
+    else if(state.role!=='reviewer')panel=`<section><h2>Ready for Morgan’s review</h2><p class="cf-quiet" style="margin-top:10px">Jamie prepared this correction. Morgan needs to approve it independently.</p><ul class="cf-review-points"><li><span aria-hidden="true">✓</span>Corrected fee: $60,000</li><li><span aria-hidden="true">✓</span>All 5 required checks passed</li><li><span aria-hidden="true">✓</span>Updated pack available to inspect</li></ul>${action('Continue as reviewer','reviewer')}<p class="cf-caption" style="margin-top:12px">This switches the example to Morgan’s view. No message or request is sent.</p></section>`;
+    else panel=`<section><h2>Approve version ${state.version}</h2><p class="cf-quiet" style="margin-top:10px">Check the values on the left and the linked source documents.</p><label class="cf-field" style="margin-top:20px"><span>Review note</span><textarea id="cf-review-note" data-input="reviewReason" required aria-describedby="cf-review-note-help">${esc(state.reviewReason)}</textarea><span id="cf-review-note-help" class="cf-caption">Saved with your decision for this version.</span></label><label class="cf-checkbox"><input type="checkbox" data-attest ${state.attest?'checked':''}><span>I have reviewed version ${state.version} and its supporting evidence.</span></label>${state.error?`<p class="cf-error" role="alert">${esc(state.error)}</p>`:''}<button type="button" class="cf-primary" data-primary data-action="approve" ${!state.attest?'disabled':''}>Approve version ${state.version}</button><p class="cf-caption" style="margin-top:12px">A later change requires a new review. Earlier decisions stay in the history.</p></section>`;
+    return `<div class="cf-grid">${candidate()}${panel}</div>`+statusDetails()+history();
+  }
+  function render(focus){q('[data-person]').textContent=state.role==='accountant'?'Jamie Park · Accountant':'Morgan Ellis · Reviewer';q('[data-role]').value=state.role;q('[data-scenario]').value=state.scenario;q('[data-version]').textContent='Version '+state.version;const heads={overview:['Q2 reporting pack','Harbour Fund I · April–June 2026 · USD'],correction:[state.soft?'Review the different readings':'Management fee','Harbour Fund I · Q2 2026 · amounts in USD'],checks:['Check the updated pack','See which values changed and whether they agree.'],review:['Review and approve','Check the exact version before approving the reporting pack.']};q('[data-title]').textContent=heads[state.screen][0];q('[data-subtitle]').textContent=heads[state.screen][1];root.querySelectorAll('[data-screen]').forEach(b=>{if(b.dataset.screen===state.screen)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});q('[data-content]').innerHTML=({overview,correction,checks:checkScreen,review})[state.screen]();if(focus){const first='[data-content] button:not(:disabled), [data-content] input:not(:disabled), [data-content] textarea:not(:disabled), [data-content] summary';const target=q(focus==='primary'?'[data-content] [data-primary]:not(:disabled)':focus==='first'?first:focus)||q(first);if(target)target.focus({preventScroll:true});}}
+  function nav(screen,focus=false){state.screen=screen;state.error='';state.errorField='';render(focus?'first':null);say(q('[data-title]').textContent+'. Version '+state.version+'.');}
+  function resetScenario(name){Object.assign(state,{scenario:name,screen:'overview',role:'accountant',source:'rule',version:2,fee:7500000,fresh:true,evidence:true,dependencies:true,provider:false,stale:false,template:true,soft:false,resolved:false,resolution:'The fee rule FT-002 and Capital!B4 support $60,000. Reader B repeats the previous fee.',attest:false,input:'60000.00',reason:'Apply the 1.20% annual rate in the approved fee rule (FT-002).',reviewReason:'The fee matches the approved rule and the updated statements agree.',error:'',errorField:'',events:baseEvents(),approvals:[],exportOpen:false});
+    if(name==='missing')state.evidence=false;if(name==='provider')state.provider=true;
+    if(['disagreement','dependency','ready','stale','template'].includes(name)){state.version=4;state.fee=EXPECTED;state.events.push({v:3,title:'First correction left a failed check',text:'The capital statement remained $15,000 below the corrected net asset value.'},{v:4,title:'Capital statement updated',text:'Fee $60,000. Net asset value and capital statement $20,015,000.'});}
+    if(name==='disagreement'){state.soft=true;state.role='reviewer';state.screen='correction';}if(name==='dependency'){state.dependencies=false;state.screen='checks';}if(name==='ready'){state.role='reviewer';state.screen='review';}
+    if(name==='stale'){state.version=5;state.stale=true;state.screen='review';state.approvals.push({v:4});state.events.push({v:4,title:'Approved by Morgan Ellis',text:'Approval covers the previous source version only.'},{v:5,title:'Source changed after approval',text:'Capital source v2 arrived. Checks and approval need renewing.'});}
+    if(name==='template'){state.template=false;state.screen='review';}render();say('Loaded a fresh example: '+q('[data-scenario]').selectedOptions[0].textContent+'.');}
+  function addEvent(title,text){state.events.push({v:state.version,title,text,results:checks().map(c=>({...c}))});}
+  function invalid(text,field,selector){state.error=text;state.errorField=field;render(selector);say(text);}
+  root.addEventListener('input',e=>{const k=e.target.dataset.input;if(!k)return;const field={amount:'input',reason:'reason',resolution:'resolution',reviewReason:'reviewReason'}[k];if(field)state[field]=e.target.value;});
+  root.addEventListener('change',e=>{if(e.target.matches('[data-scenario]'))resetScenario(e.target.value);if(e.target.matches('[data-role]')){state.role=e.target.value;state.attest=false;render();say('Example role changed. '+q('[data-person]').textContent+'.');}if(e.target.matches('[data-attest]')){state.attest=e.target.checked;const b=q('[data-action="approve"]');if(b)b.disabled=!state.attest;}});
+  root.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-input="amount"]')){e.preventDefault();q('[data-action="save"]').click();}});
+  root.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||b.disabled||!root.contains(b))return;
+    if(b.dataset.screen){nav(b.dataset.screen);return;}
+    if(b.dataset.source){state.source=b.dataset.source;render('[data-source="'+state.source+'"]');say('Showing '+b.textContent+' source.');return;}
+    if(b.dataset.sourceOpen){state.source=b.dataset.sourceOpen;nav('correction',true);return;}
+    const a=b.dataset.action;if(!a)return;
+    if(a==='demo'){const panel=q('#cf-demo-options');panel.hidden=!panel.hidden;root.querySelectorAll('[data-action="demo"]').forEach(t=>{if(t.hasAttribute('aria-expanded'))t.setAttribute('aria-expanded',String(!panel.hidden));});if(!panel.hidden)q('[data-scenario]').focus({preventScroll:false});else q('.cf-demo-trigger').focus({preventScroll:true});return;}
+    if(a==='skip'){const target=q('[data-content] [data-primary]:not(:disabled)')||q('[data-content] button:not(:disabled), [data-content] input:not(:disabled), [data-content] summary')||q('.cf-nav button');if(target)target.focus();return;}
+    if(a==='restart'){resetScenario(state.scenario);return;}
+    if(['overview','correction','checks','review'].includes(a)){nav(a,true);return;}
+    if(a==='accountant'||a==='reviewer'){state.role=a;state.attest=false;state.error='';render('first');say('Example switched to '+(a==='reviewer'?'Morgan, the independent reviewer.':'Jamie, the accountant.'));return;}
+    if(a==='save'){
+      if(state.role!=='accountant'||!state.evidence||state.provider)return;const raw=state.input.trim();if(!/^\d+(?:\.\d{1,2})?$/.test(raw)){invalid('Enter an amount such as 60000.00, without commas or a currency symbol.','amount','#cf-amount');return;}const p=raw.split('.'),c=Number(p[0])*100+Number((p[1]||'').padEnd(2,'0'));if(!Number.isSafeInteger(c)||c<0||c>2000000000){invalid('Enter an amount between 0 and 20,000,000 USD.','amount','#cf-amount');return;}if(!state.reason.trim()){invalid('Explain why you are changing the fee.','reason','#cf-reason');return;}state.version++;state.fee=c;state.fresh=false;state.stale=false;state.attest=false;state.resolved=false;addEvent('Correction saved by Jamie Park',state.reason.trim());nav('checks',true);say('Version '+state.version+' saved. '+checks().filter(c=>c.status!=='PASS').length+' checks need attention.');return;
+    }
+    if(a==='repair'){if(state.role!=='accountant'||state.fee!==EXPECTED||!state.evidence||!state.dependencies||state.provider||state.stale)return;state.version++;state.fresh=true;state.attest=false;addEvent('Capital statement updated','The corrected statement agrees with net asset value. All five required checks passed.');render('primary');say('Version '+state.version+'. All required checks passed. Independent approval is still needed.');return;}
+    if(a==='receive'){if(state.role!=='accountant')return;state.evidence=true;state.version++;addEvent('Example fee agreement added','The approved source is now available. The fee mismatch still needs correcting.');nav('correction',true);return;}
+    if(a==='recheck'){if(state.role!=='accountant')return;state.stale=false;addEvent('New source version checked','Current values pass all checks. Approval of version 4 does not approve version '+state.version+'.');render('primary');say('Checks passed for version '+state.version+'. A new independent approval is still needed.');return;}
+    if(a==='resolve'){if(state.role!=='reviewer'||!hardPass()||!state.soft)return;if(!state.resolution.trim()){invalid('Add the evidence and reason for accepting this amount.','resolution','#cf-resolution');return;}state.resolved=true;state.error='';state.events.push({v:state.version,title:'Reader disagreement resolved by Morgan',text:state.resolution+' Both original readings are retained.'});render('primary');say('Review reason recorded. The pack still needs independent approval.');return;}
+    if(a==='approve'){if(state.role!=='reviewer'||!hardPass()||(state.soft&&!state.resolved)||!state.attest||approved())return;if(!state.reviewReason.trim()){invalid('Add a short note explaining your approval.','reviewReason','#cf-review-note');return;}state.approvals.push({v:state.version,reason:state.reviewReason});state.events.push({v:state.version,title:'Approved by Morgan Ellis',text:state.reviewReason+' Approval applies only to this version and its sources.'});state.error='';render('primary');say('Morgan approved version '+state.version+'. No files have been published.');return;}
+    if(a==='export'){if(!releasable())return;state.exportOpen=!state.exportOpen;render('[data-action="export"]');say(state.exportOpen?'Export contents shown. This is a prototype; no files are generated.':'Export contents hidden.');}
+  });
+  const design={textSize:16,corners:8};function applyDesign(){root.style.setProperty('--cf-size',design.textSize+'px');root.style.borderRadius=design.corners+'px';}render();applyDesign();if(globalThis.Tweak){const t=new Tweak({container:root,onChange:applyDesign});t.addSlider(design,'textSize',{label:'Text size',min:16,max:20,step:1,unit:'px'});t.addSlider(design,'corners',{label:'Corner radius',min:0,max:12,step:2,unit:'px'});}
+})();
+</script>
+
+<script src="https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js"></script>
+<script src="https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js"></script>
+<script>
+(() => {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set(["top", "right", "bottom", "left"]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (target) =>
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest("[data-tooltip]")
+      : null;
+  const containsTarget = (trigger, target) =>
+    target?.nodeType != null && trigger.contains(target);
+  const getContent = (trigger) =>
+    trigger.getAttribute("data-tooltip")?.trim() ?? "";
+  const getPlacement = (trigger) => {
+    const placement = trigger.getAttribute("data-tooltip-placement");
+    return tooltipPlacements.has(placement) ? placement : "top";
+  };
+  const getTooltip = () => {
+    if (tooltip == null) {
+      tooltip = document.createElement("div");
+      tooltip.id = tooltipId;
+      tooltip.className = "tooltip";
+      tooltip.setAttribute("role", "tooltip");
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) => {
+    const ids = new Set(
+      (trigger.getAttribute("aria-describedby") ?? "")
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute("aria-describedby");
+    } else {
+      trigger.setAttribute("aria-describedby", [...ids].join(" "));
+    }
+  };
+  const clearOpenTimeout = () => {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) => {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) => {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              "--tooltip-available-width",
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              "--tooltip-available-height",
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: "fixed",
+    })
+      .then(({ x, y }) => {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = "visible";
+      })
+      .catch(() => {
+        if (activeTrigger === trigger && request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) => {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = "hidden";
+    floating.style.transform = "translate(0, 0)";
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () => {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) => {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() < skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() => {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) => {
+    if (event.pointerType === "touch") {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) => {
+    lastPointerWasTouch =
+      event.type === "pointerdown" && event.pointerType === "touch";
+  };
+  const handleTouchClick = (event) => {
+    const isTouch = event.pointerType === "touch" || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch && activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() => {
+      if (activeTrigger === trigger && !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) => {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) => {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(":focus-visible")) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) => {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () => {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    document.removeEventListener("pointerover", handlePointerOpen);
+    document.removeEventListener("pointerdown", handlePointer);
+    document.removeEventListener("pointercancel", handlePointer);
+    document.removeEventListener("click", handleTouchClick);
+    document.removeEventListener("pointerout", handleLeave);
+    document.removeEventListener("focusin", handleFocusIn);
+    document.removeEventListener("focusout", handleLeave);
+    document.removeEventListener("keydown", handleKeyDown);
+    document.removeEventListener("contextmenu", handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener("pointerover", handlePointerOpen);
+  document.addEventListener("pointerdown", handlePointer);
+  document.addEventListener("pointercancel", handlePointer);
+  document.addEventListener("click", handleTouchClick);
+  document.addEventListener("pointerout", handleLeave);
+  document.addEventListener("focusin", handleFocusIn);
+  document.addEventListener("focusout", handleLeave);
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("contextmenu", handleContextMenu);
+  window.addEventListener("pagehide", destroy, { once: true });
+})();
+</script>
+<script id="codex-visualization-tabs">
+(() => {
+  const selector = '.nav[role="tablist"] [role="tab"]';
+  const disabled = ':disabled,[aria-disabled="true"]';
+  const selectTab = (selected) => {
+    const panelId = selected.getAttribute("aria-controls");
+    for (const tab of selected.closest('[role="tablist"]').querySelectorAll('[role="tab"]')) {
+      const active = tab === selected;
+      tab.classList.toggle("active", active);
+      tab.setAttribute("aria-selected", String(active));
+      const id = tab.getAttribute("aria-controls");
+      const panel = id && document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden && selected.id) {
+          panel.setAttribute("aria-labelledby", selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) => {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === "click") {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest('[role="tablist"]').querySelectorAll('[role="tab"]'),
+    ).filter((candidate) => !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll('.nav[role="tablist"]')) {
+    const selected =
+      list.querySelector('[role="tab"][aria-selected="true"]') ??
+      list.querySelector('[role="tab"].active') ??
+      list.querySelector('[role="tab"]');
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener("click", interact);
+  document.addEventListener("keydown", interact);
+  window.addEventListener("pagehide", () => {
+    document.removeEventListener("click", interact);
+    document.removeEventListener("keydown", interact);
+  }, { once: true });
+})();
+</script>
+<script id="codex-visualization-lucide" async src="https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js"></script>
+<script>
+(() => {
+  const initialize = () => {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById("codex-visualization-lucide")
+    ?.addEventListener("load", initialize, { once: true });
+})();
+</script>
+
+</body>
+</html>

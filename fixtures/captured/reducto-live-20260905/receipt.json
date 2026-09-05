@@ -1,0 +1,17 @@
+{
+  "mode": "LIVE",
+  "transport": "trusted-coordinator",
+  "endpoint": "https://platform.reducto.ai",
+  "authorization_reference": "User authorized a live synthetic PDF test and supplied provider access in this task on 2026-09-05.",
+  "data_handling_note": "Only the labelled fictional 705-byte PDF was submitted. persist_results=false. Reducto published policy reviewed 2026-09-05 states 24-hour expiry and no-training terms for Growth and above; account tier and regional entitlement are unverified. Standard endpoint; no customer/private documents authorized.",
+  "executed_at": "2026-09-05T18:06:42.102894+00:00",
+  "source_path": "artifacts/live-reducto/synthetic.pdf",
+  "parse_response_path": "artifacts/live-reducto/parse-response.json",
+  "source_sha256": "4b3b1adfb44bf2b76f2e45dd4a5c8f659ead318d84419331d70b6daa7411ead1",
+  "response_sha256": "afc4b4a12164fdc6213d96f06e90be77afb6954be975f6e2e961eb92cf0f05f7",
+  "request_settings": {
+    "persist_results": false,
+    "force_url_result": false
+  },
+  "job_id": "07886b8c-5eeb-4808-beab-2389db7d7572"
+}

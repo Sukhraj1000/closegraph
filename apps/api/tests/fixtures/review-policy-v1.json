@@ -1,0 +1,24 @@
+{
+  "policy_version": "native-single-parser-v1",
+  "revision": 1,
+  "supported_native_formats": [
+    "CSV",
+    "XLSX"
+  ],
+  "probabilistic_quick_review": false,
+  "required_check_ids": [
+    "source-coverage",
+    "financial"
+  ],
+  "native_confidence_status": "NOT_APPLICABLE",
+  "allowed_native_agreement": [
+    "NOT_RUN",
+    "NOT_APPLICABLE",
+    "AGREE"
+  ],
+  "priority": {
+    "materiality": "100000.00",
+    "impact_threshold": 2
+  },
+  "review_requirement": "Every quick-review item still requires an independent exact-snapshot financial review decision."
+}

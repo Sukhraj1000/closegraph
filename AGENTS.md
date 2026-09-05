@@ -9,11 +9,11 @@ The user authorized the full active MVP to be implemented, tested, independently
 1. `README.md` for current implementation status and commands.
 2. `docs/product-brief.md` for the interview evidence and product boundary.
 3. `docs/roadmap.md` for the use-case sequencing and phase gate.
-4. `openspec/config.yaml`, then the active change's proposal, specs, design and tasks.
+4. `openspec/config.yaml`, then the implemented baseline specs and archived change's proposal, design and completed tasks.
 
 ## Current scope
 
-The active change is `verify-corrected-reporting-pack`: use case 1 only. Complete the real correction-to-reviewed-output loop before expanding into missing-evidence requests, deadlines and alerts (use case 2). Existing missing evidence must block a pack in the MVP; request/notification automation is deferred.
+Use case 1 is implemented and technically accepted; its completed change is `openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack`. Use case 2 requires a separately scoped change and is not started. Existing missing evidence must block a pack in the MVP; request/notification automation is deferred.
 
 The user authorized implementation and automated engineering acceptance of the active MVP. Do not mark implementation tasks complete, archive the change or populate implemented baseline specs until real implementation and acceptance evidence exist.
 
@@ -21,7 +21,7 @@ The user authorized implementation and automated engineering acceptance of the a
 
 OpenSpec is pinned locally in `package.json`. Use `npm ci` and `npm run spec:check` for reproducible spec tooling. The shared agent workflows are generated in `.agents/skills/`; read the appropriate skill for proposing/applying/syncing/archiving changes. Use the CLI's `instructions` for the active schema instead of assuming a historical template.
 
-`openspec/changes/` contains proposed behaviour. `openspec/specs/` is intentionally empty until the first change is implemented, verified and archived. Use `docs/roadmap.md` as a phase index, not a competing implementation checklist. The active change's `tasks.md` is the implementation checklist.
+`openspec/specs/` contains the five implemented capability specs. `openspec/changes/archive/` preserves the completed 40-task checklist and design; no active change remains. Use `docs/roadmap.md` as a phase index, not a competing checklist.
 
 ## Engineering boundaries
 

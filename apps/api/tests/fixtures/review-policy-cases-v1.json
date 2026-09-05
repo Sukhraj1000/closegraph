@@ -1,0 +1,656 @@
+{
+  "dataset_id": "synthetic-routing-heldout-v1",
+  "schema_version": 1,
+  "scope": "Hand-authored routing scenarios for the declared CSV/XLSX reporting policy and conservative probabilistic-parser review. No customer observations.",
+  "split_description": "Development examples and separate held-out evaluation cases; labels are never passed into routing. No model is fitted on either split.",
+  "cases": [
+    {
+      "id": "development-native",
+      "split": "development",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": true,
+        "expected_route": "READY_FOR_QUICK_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "development-probabilistic",
+      "split": "development",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "AVAILABLE",
+          "value": "0.999",
+          "kind": "synthetic-provider-score",
+          "provenance": "synthetic-response",
+          "calibrated": false
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "development-failed-check",
+      "split": "development",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "FAIL"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "failed_relationship",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-zero-is-present",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "0",
+        "dependent_outputs": 0
+      },
+      "label": {
+        "safe_for_quick_review": true,
+        "expected_route": "READY_FOR_QUICK_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-material-native",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "100000.00",
+        "dependent_outputs": 0
+      },
+      "label": {
+        "safe_for_quick_review": true,
+        "expected_route": "READY_FOR_QUICK_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-downstream-impact",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "20.00",
+        "dependent_outputs": 3
+      },
+      "label": {
+        "safe_for_quick_review": true,
+        "expected_route": "READY_FOR_QUICK_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-currency-context",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "AVAILABLE",
+          "value": "0.999",
+          "kind": "synthetic-provider-score",
+          "provenance": "synthetic-response",
+          "calibrated": false
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1,
+        "primary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "1000.00"
+        },
+        "secondary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "USD",
+          "raw_scale": "units",
+          "value_decimal": "1000.00"
+        }
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": "contextual_currency",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-scale-context",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "AVAILABLE",
+          "value": "0.999",
+          "kind": "synthetic-provider-score",
+          "provenance": "synthetic-response",
+          "calibrated": false
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1,
+        "primary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "1000.00"
+        },
+        "secondary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "thousands",
+          "value_decimal": "1000.00"
+        }
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": "contextual_scale",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-missing-period",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "AVAILABLE",
+          "value": "0.999",
+          "kind": "synthetic-provider-score",
+          "provenance": "synthetic-response",
+          "calibrated": false
+        },
+        "evidence_complete": true,
+        "context_complete": false,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1,
+        "primary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "1000.00"
+        },
+        "secondary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": null,
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "1000.00"
+        }
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "missing_required_context",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-missing-confidence",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": null,
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": null,
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-unknown-check",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "UNKNOWN"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "unknown_relationship",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-missed-record",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "FAIL",
+            "diagnostics": [
+              "source_anchor_count_differs"
+            ]
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "missed_record",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-rejected-record",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "FAIL",
+            "diagnostics": [
+              "rejected_source_record"
+            ]
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "rejected_record",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-correlated-parser-error",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": false,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "AVAILABLE",
+          "value": "0.999",
+          "kind": "synthetic-provider-score",
+          "provenance": "synthetic-response",
+          "calibrated": false
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1,
+        "primary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "999.00"
+        },
+        "secondary": {
+          "entity_id": "synthetic-entity",
+          "metric": "nav",
+          "period": "2026-Q2",
+          "currency": "GBP",
+          "raw_scale": "units",
+          "value_decimal": "999.00"
+        }
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": "correlated_parser_error",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-missing-check-identity",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "BLOCKED",
+        "error_class": "missing_required_check",
+        "source": "hand-authored synthetic label"
+      }
+    },
+    {
+      "id": "heldout-unversioned-policy",
+      "split": "held_out",
+      "features": {
+        "checks": [
+          {
+            "id": "source-coverage",
+            "required": true,
+            "status": "PASS"
+          },
+          {
+            "id": "financial",
+            "required": true,
+            "status": "PASS"
+          }
+        ],
+        "native": true,
+        "agreement": "NOT_RUN",
+        "confidence": {
+          "status": "NOT_APPLICABLE",
+          "value": null,
+          "reason": "Native structured extraction"
+        },
+        "evidence_complete": true,
+        "context_complete": true,
+        "unverifiable": false,
+        "amount": "1000.00",
+        "dependent_outputs": 1,
+        "policy_version": "unknown-policy"
+      },
+      "label": {
+        "safe_for_quick_review": false,
+        "expected_route": "NEEDS_REVIEW",
+        "error_class": "unsupported_policy",
+        "source": "hand-authored synthetic label"
+      }
+    }
+  ]
+}
