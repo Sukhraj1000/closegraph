@@ -6,7 +6,11 @@ from closegraph.pipeline.sensors import dispatch_sensor,request_config
 
 def build_definitions(services,io_dir):
     job=define_asset_job('process_reporting_pack',selection=[processing_input,native_evaluation,review_snapshot],executor_def=in_process_executor)
-    return Definitions(assets=[processing_input,native_evaluation,review_snapshot],jobs=[job],sensors=[dispatch_sensor(job,services)],resources={'services':services_resource(services),'io_manager':RunScopedJSONIOManager(io_dir)})
+    assets=[processing_input,native_evaluation,review_snapshot];jobs=[job];sensors=[dispatch_sensor(job,services)]
+    if getattr(services,'collections',None) is not None:
+        from closegraph.collections.pipeline import collection_definitions
+        extra,collection_job,collection_sensor=collection_definitions(services);assets+=extra;jobs.append(collection_job);sensors.append(collection_sensor)
+    return Definitions(assets=assets,jobs=jobs,sensors=sensors,resources={'services':services_resource(services),'io_manager':RunScopedJSONIOManager(io_dir)})
 
 
 def run_request(definitions,instance,request):

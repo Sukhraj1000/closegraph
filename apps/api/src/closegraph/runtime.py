@@ -39,13 +39,16 @@ def build_services(*,seed=False,migrate=False,pdf_provider=None):
     url=os.environ['CLOSEGRAPH_DATABASE_URL']
     scopes=development_scopes()
     accounts=[DevAccount.create(name,os.environ['CLOSEGRAPH_'+name.upper()+'_PASSWORD'],role,scopes) for name,role in [('preparer','PREPARER'),('reviewer','REVIEWER')]]
-    auth=LocalAuth(accounts=accounts);engine=make_engine(url)
+    auth=LocalAuth(accounts=accounts,collection_grants={name:{(scope.tenant_id,scope.fund_id) for scope in scopes} for name in ('preparer','reviewer')});engine=make_engine(url)
+    from closegraph.collections.service import CollectionServices
+    from closegraph.collections.provider import collection_pdf_provider
     if migrate:
         config=Config(str(Path(__file__).parents[2]/'alembic.ini'))
         with engine.begin() as connection:
             config.attributes['connection']=connection; command.upgrade(config,'head')
     services=PostgreSQLPackServices(session_factory(engine),LocalBlobStore(data_dir()/'blobs'),auth,evaluate_pack)
     services.pdf_evidence = pdf_provider if pdf_provider is not None else provider_from_environment(os.environ)
+    services.collections=CollectionServices(session_factory(engine),LocalBlobStore(data_dir()/'collection-blobs',max_bytes=512*1024*1024),auth,pdf_provider=collection_pdf_provider(os.environ))
     if seed:
         actor=Actor(actor_id='preparer',role='PREPARER')
         for scope in scopes:

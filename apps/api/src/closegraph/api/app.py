@@ -228,7 +228,8 @@ def create_app(*, auth: LocalAuth | None = None, services: PackServices | None =
     def session_payload(user: Principal):
         return {"actor":user.actor.model_dump(mode="json"),
                 "scopes":[scope.model_dump(mode="json") for scope in user.scopes],
-                "csrf_token":user.csrf_token}
+                "csrf_token":user.csrf_token,
+                "collection_funds":auth.collection_funds(user.actor.actor_id)}
 
     @app.get("/api/health")
     def health():
@@ -371,4 +372,6 @@ def create_app(*, auth: LocalAuth | None = None, services: PackServices | None =
         return Response(artifact.content, media_type=artifact.media_type,
                         headers={"Content-Disposition":"attachment; filename*=UTF-8''" + quote(artifact.filename, safe="")})
 
+    from closegraph.collections.routes import collection_router
+    app.include_router(collection_router(auth, getattr(services,'collections',None)))
     return app
