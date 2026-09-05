@@ -15,7 +15,7 @@ export interface PackSnapshot {
   policy_version?: string; execution_error?: string | null; publication?: unknown;
   publications?: unknown[]; review?: unknown; unresolved_soft_signals?: boolean; resolution?: {actor?:string;at?:string;reason:string;source_ids:string[];snapshot_digest?:string}|null;
 }
-export interface Session { username: string; role: string; csrf_token: string; scopes?: {tenant_id:string;fund_id:string;pack_id:string}[] }
+export interface Session { username: string; role: string; csrf_token: string; collection_funds?: {tenant_id:string;fund_id:string}[]; scopes?: {tenant_id:string;fund_id:string;pack_id:string}[] }
 export type Page = 'overview' | 'correction' | 'checks' | 'review';
 export interface Correction { fact_id: string; value_decimal: string; reason: string; source_id: string; expected_version: number }
 export const isCurrent = (pack: PackSnapshot) => ['CURRENT', 'FRESH'].includes(pack.freshness.toUpperCase());

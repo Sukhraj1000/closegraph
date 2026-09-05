@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 function setting(name:string){const value=process.env[name];if(!value)throw new Error(name+' is required for the real PDF evidence browser check.');return value;}
 const packId=()=>process.env.CLOSEGRAPH_TEST_PDF_PACK_ID??'synthetic-pdf-pack';
 async function openPack(page:Page,role:'PREPARER'|'REVIEWER'){
- await page.goto(process.env.CLOSEGRAPH_UI_URL??'http://127.0.0.1:24173');
+ await page.goto((process.env.CLOSEGRAPH_UI_URL??'http://127.0.0.1:24173')+'/#reports');
  await page.getByRole('textbox',{name:'Username',exact:true}).fill(setting('CLOSEGRAPH_TEST_'+role+'_USERNAME'));
  await page.getByLabel('Password',{exact:true}).fill(setting('CLOSEGRAPH_TEST_'+role+'_PASSWORD'));
  await page.getByRole('button',{name:'Sign in',exact:true}).click();

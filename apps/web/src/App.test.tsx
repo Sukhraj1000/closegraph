@@ -23,12 +23,13 @@ describe('session transitions', () => {
    if(url==='/api/packs/second-pack')return json(second);
    throw new Error('Unexpected request '+url+' '+options?.method);
   });
+  window.history.replaceState(null,'','#reports');
   render(<App/>);
   await screen.findByRole('heading',{name:'First fund private pack'});
   await user.click(screen.getByRole('button',{name:'Refresh current version'}));
   await waitFor(()=>expect(lists).toBe(2));
   await user.click(screen.getByRole('button',{name:'Sign out'}));
-  await screen.findByRole('heading',{name:'Sign in to review a pack'});
+  await screen.findByRole('heading',{name:'Sign in to CloseGraph'});
   await user.type(screen.getByRole('textbox',{name:'Username'}),'second-person');
   await user.type(screen.getByLabelText('Password',{exact:true}),'test-password-not-a-secret');
   await user.click(screen.getByRole('button',{name:'Sign in'}));
