@@ -106,7 +106,10 @@ def _environment(home: Path, tmp: Path, artifacts: Path) -> dict[str, str]:
         "PATH": f"/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/usr/local/bin:{runtime_bin}",
         "HOME": str(home), "TMPDIR": str(tmp), "TMP": str(tmp), "TEMP": str(tmp),
         "CLOSEGRAPH_ARTIFACTS": str(artifacts), "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8",
-        "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONSAFEPATH": "1",
+        # Repository imports are intentional inside Seatbelt (including python -m).
+        # The environment is rebuilt here, so host PYTHONPATH/startup hooks cannot leak in.
+        "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1",
+        "OPENSSL_CONF": "/dev/null",
         "XDG_CONFIG_HOME": str(home / ".config"), "XDG_CACHE_HOME": str(home / ".cache"),
         "XDG_DATA_HOME": str(home / ".local/share"), "UV_CACHE_DIR": str(home / ".cache/uv"),
         "UV_OFFLINE": "1", "UV_PYTHON_DOWNLOADS": "never", "PIP_NO_INDEX": "1",
@@ -254,7 +257,9 @@ def _argv(value, workspace: Path, env: dict[str, str], run: Path) -> list[str]:
         raise ValueError(f"Executable is outside allowed workspace/toolchains: {candidate}")
     if not resolved.is_file() or not os.access(resolved, os.X_OK):
         raise ValueError(f"Not an executable file: {candidate}")
-    return [str(resolved), *value[1:]]
+    # Validate the resolved target but retain the invocation path: Python uses
+    # the venv executable path to discover pyvenv.cfg and installed dependencies.
+    return [str(candidate), *value[1:]]
 
 
 def _execute(command: list[str], cwd: Path, env: dict[str, str], timeout: float) -> dict:
@@ -319,8 +324,8 @@ def run_sandbox(argv, workspace, timeout=120, network_ports=()) -> dict:
     """
     if sys.platform != "darwin" or not Path(SANDBOX_EXEC).is_file() or not os.access(SANDBOX_EXEC, os.X_OK):
         raise RuntimeError("macOS sandbox-exec is required; unsandboxed fallback is forbidden")
-    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
-        raise ValueError("timeout must be a finite positive number")
+    if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0 < timeout <= 1200:
+        raise ValueError("timeout must be finite, positive and at most 1200 seconds")
     if not isinstance(network_ports, (list, tuple)) or any(type(p) is not int or not 1 <= p <= 65535 for p in network_ports):
         raise ValueError("network_ports must be a list/tuple of integer ports 1..65535")
     ports = tuple(sorted(set(network_ports)))
