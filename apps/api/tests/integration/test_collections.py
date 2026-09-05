@@ -94,6 +94,12 @@ def define_recipe(service, state, dataset, keys, checks=None, export=None):
                 {"type": "required", "columns": [keys["account"], keys["amount"]]},
                 {"type": "total", "column": keys["amount"], "expected": "20.00"}],
             "export": export or {"formats": ["csv", "xlsx"]}}
+    if not state.get("requirements"):
+        source=next(s for s in state['sources'] if s['id']==dataset['source_id'])
+        state=service.requirements(state['id'],'reviewer',state['version'],[{
+            'id':'required-source','title':'Required source evidence','kind':'evidence','blocking':True,
+            'owner_actor_id':'preparer','owner_party':'accountant','document_ids':[source['document_id']],
+            'parameters':{'minimum_documents':1}}])
     return service.recipe(state["id"], "preparer", state["version"], spec)
 
 

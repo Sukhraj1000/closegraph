@@ -4,6 +4,8 @@ A local workspace for extracting varied source files, checking the evidence, app
 
 ## Collections
 
+Start with **Overview, Documents, Tasks, Review changes and Outputs**. Edit workbooks in Excel, upload a new version against the existing document, compare saved changes, and route evidence requests to explicit owners. Account managers configure required checks and independently approve exact outputs. See [evidence-led collaboration](docs/engineering/evidence-collaboration.md).
+
 The default workspace accepts varied CSV/XLSX layouts and configured Reducto PDF extraction. Review source-linked tables, resolve errors, select headers and accept the exact input version. Reusable versioned recipes define mappings, joins, Decimal calculations, classification, allocation, reshaping and required checks. An independent reviewer inspects exact draft exports before those bytes can be released.
 
 See the [collection workflow and limits](docs/engineering/collections-workflow.md), [recipe reference](docs/engineering/collection-recipes.md), and [collection verification](docs/verification/collections-acceptance.md). PDF extraction is AI-assisted and requires review; confidence is not proof of correctness. Native spreadsheet extraction and transformations do not use an LLM. The direct collections implementation leaves OpenSpec unchanged, as requested.
@@ -60,4 +62,4 @@ Checks, parser observations, review decisions, execution state and version fresh
 
 The repository contains labelled synthetic inputs. Private datasets, interview PDFs, LP details and provider credentials remain outside Git. Supported mappings and accounting treatment must be explicit; universal document accuracy, general spreadsheet recalculation, live Ylookup integration, production IAM/compliance and autonomous accounting are not claimed.
 
-Use case 2—missing-evidence requests, owners, deadlines and escalation—remains deferred. This build does not deploy production services, provision paid infrastructure, distribute investor reports or post accounting transactions.
+Collections now includes scoped missing-evidence requests, owners, deadlines and deduplicated in-app escalation. External delivery and live source connectors remain outside this version. This build does not deploy production services, provision paid infrastructure, distribute investor reports or post accounting transactions.
