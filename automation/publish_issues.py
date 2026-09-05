@@ -8,6 +8,14 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+if __package__:
+    from .build_catalogue import resolve_change
+else:
+    # Direct script execution must also work with PYTHONSAFEPATH enabled.
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from build_catalogue import resolve_change
+
 REPO = "Sukhraj1000/closegraph"
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -30,8 +38,8 @@ def load_catalog(path):
     if len(by_key) != len(entries):
         raise ValueError("Duplicate catalogue key")
     tasks = [t for i in entries for t in i["spec_tasks"]]
-    source = (ROOT / "openspec/changes/verify-corrected-reporting-pack/tasks.md").read_text()
-    expected = re.findall(r"^- \[ \] (\d+\.\d+) ", source, re.M)
+    source = (resolve_change(ROOT) / "tasks.md").read_text()
+    expected = re.findall(r"^- \[[ xX]\] (\d+\.\d+) ", source, re.M)
     if sorted(tasks) != sorted(expected) or len(set(tasks)) != len(tasks):
         raise ValueError("Original OpenSpec tasks are not mapped exactly once")
     for item in entries:

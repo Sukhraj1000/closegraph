@@ -1,0 +1,622 @@
+{
+  "schema": "closegraph-final-after-review-evidence-v1",
+  "generated_at": "2026-09-05T19:53:45.085133+00:00",
+  "source_commit": "23eeb5191cb9775b9cfaf773ca6647488dfa8ea2",
+  "ui_implementation_commit": "395f8c166d5fecc9f952e310d8ae8e656a1f1948",
+  "runtime_repairs_reported_by_integration_owner": {
+    "api": "41067f9",
+    "workbook": "d800f17",
+    "ui": "395f8c1"
+  },
+  "source_files": [
+    {
+      "path": "apps/web/src/lib/model.ts",
+      "sha256": "d8548e5eb81469a9757947be950337814b16cc1d904a8e5fc64ce594f725aee4"
+    },
+    {
+      "path": "apps/web/src/components/closegraph/DocumentPreview.tsx",
+      "sha256": "1846be6b81b0f8e0f5f3e74bd7f376949e57bc7cbec9fba944b6453bba4d1706"
+    },
+    {
+      "path": "apps/web/src/features/packs/CorrectionPanel.tsx",
+      "sha256": "e375b356647b072c1d89e4242f3d63ce8a199b6902a0490a0612bb78e097f45b"
+    },
+    {
+      "path": "apps/web/src/features/packs/SourceEvidence.tsx",
+      "sha256": "0a42991159c6d93793c85ada74186b39198269ad60a7736e0ccbcb2a32c58b33"
+    },
+    {
+      "path": "apps/web/src/features/packs/PackReview.tsx",
+      "sha256": "f837cebc2871cfeb10c9de63df3bdd46bc2457fbaff57b5cde451eb0e0e962fe"
+    },
+    {
+      "path": "apps/web/src/features/packs/PackReview.test.tsx",
+      "sha256": "8f3eab169aeec68d84889760e258399aa8fa05fe5f8d04fe81b65a358c66e451"
+    },
+    {
+      "path": "apps/web/tests/native-journey.spec.ts",
+      "sha256": "da5e0fdac16c037702c864576fb19325211a25d4e5d7ebdb91e7bc4f2ab95a93"
+    },
+    {
+      "path": "apps/web/tests/verify_download.py",
+      "sha256": "0ac95b5778046346ba0ad05fcc50083783aae6f9485e99ddf1be6e18c903713c"
+    },
+    {
+      "path": "apps/web/tests/stories.spec.ts",
+      "sha256": "5423859afba878d51c007347955b5f4f3f5a08c2772368fcd877cf9aa9958061"
+    }
+  ],
+  "served_ui_verification": "served-ui-source-verification.json",
+  "browser_environment": "browser-environment.json",
+  "provenance": "Automated local acceptance using scoped preparer/reviewer sessions, the real API/PostgreSQL/Dagster workflow, and authorised synthetic native fixture bytes. Browser remains isolated with a fixed loopback relay. Storybook uses separate fixtures.",
+  "unit": {
+    "passed": 32,
+    "failed": 0,
+    "report": "unit-results.json",
+    "log": "unit.log",
+    "command": [
+      "npm",
+      "--prefix",
+      "apps/web",
+      "test",
+      "--",
+      "--reporter=json",
+      "--outputFile=../../artifacts/final-ui/unit-results.json"
+    ]
+  },
+  "production_build": {
+    "status": "PASSED",
+    "log": "build.log",
+    "command": [
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "build"
+    ]
+  },
+  "storybook_build": {
+    "status": "PASSED",
+    "log": "storybook-build.log",
+    "command": [
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "build-storybook"
+    ],
+    "served_source_verification": "storybook-static-source-verification.json"
+  },
+  "browser_reports": {
+    "native": {
+      "status": "PASSED",
+      "report": "native-after-review-browser-results.json",
+      "startTime": "2026-09-05T19:49:42.737Z",
+      "duration": 81494.535,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "historical": false
+    },
+    "stories": {
+      "status": "PASSED",
+      "report": "story-after-review-browser-results.json",
+      "startTime": "2026-09-05T19:51:19.009Z",
+      "duration": 96982.451,
+      "expected": 13,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "historical": false
+    },
+    "pdf_disabled": {
+      "status": "PASSED",
+      "report": "pdf-disabled-browser-results.json",
+      "startTime": "2026-09-05T18:48:34.222Z",
+      "duration": 35057.891,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "historical": true,
+      "scope_note": "Retained earlier real provider-mode browser result. No provider request or mode re-ingestion was repeated after the final source-selection/API/workbook repairs."
+    },
+    "pdf_captured_replay": {
+      "status": "PASSED",
+      "report": "pdf-replay-browser-results.json",
+      "startTime": "2026-09-05T19:08:48.794Z",
+      "duration": 30653.542999999998,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0,
+      "historical": true,
+      "scope_note": "Retained earlier real provider-mode browser result. No provider request or mode re-ingestion was repeated after the final source-selection/API/workbook repairs."
+    }
+  },
+  "browser_commands": {
+    "native": [
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "test:native",
+      "--",
+      "--output",
+      "test-results/native-after-review"
+    ],
+    "stories": [
+      "npm",
+      "--prefix",
+      "apps/web",
+      "run",
+      "test:stories",
+      "--",
+      "--output",
+      "test-results/stories-after-review"
+    ],
+    "environment_note": "Local test credentials loaded from private runtime-browser-env.json without printing. Final native/story runs used CLOSEGRAPH_BROWSER_WS_ENDPOINT and a distinct CLOSEGRAPH_TEST_REPORT JSON output. Historical PDF runs used explicit DISABLED or CAPTURED_REPLAY mode."
+  },
+  "native": {
+    "pack_id": "synthetic-pack",
+    "failed_repair_revision": 87,
+    "failed_repair_checks": [
+      {
+        "check_id": "data_schema",
+        "status": "PASS",
+        "required": true
+      },
+      {
+        "check_id": "source_coverage",
+        "status": "PASS",
+        "required": true
+      },
+      {
+        "check_id": "evidence",
+        "status": "PASS",
+        "required": true
+      },
+      {
+        "check_id": "source_inputs",
+        "status": "PASS",
+        "required": true
+      },
+      {
+        "check_id": "fee",
+        "status": "PASS",
+        "required": true
+      },
+      {
+        "check_id": "source_to_pack",
+        "status": "FAIL",
+        "required": true
+      },
+      {
+        "check_id": "balance_sheet",
+        "status": "NOT_APPLICABLE",
+        "required": true
+      }
+    ],
+    "checked_revision": 89,
+    "ready_journal_revision": 89,
+    "released_journal_revision": 91,
+    "review": {
+      "actor": "reviewer",
+      "adjudication": null,
+      "artifact_id": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967",
+      "at": "2026-09-05T19:50:52.434232+00:00",
+      "attested": true,
+      "decision": "APPROVED",
+      "note": "Inspected the candidate workbook, source evidence and all affected checks.",
+      "pack_id": "synthetic-pack",
+      "scope": "synthetic-fund",
+      "snapshot_digest": "fca6877e251dea4dd9912fb7174e55529fe22e4513cce3eaa0ed08cd651d8e4f",
+      "snapshot_version": 89
+    },
+    "publication": {
+      "actor": "reviewer",
+      "approved_version": 90,
+      "artifact_id": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967",
+      "at": "2026-09-05T19:50:52.812794+00:00",
+      "manifest_id": "89acc9c0ca31fbb896e7e88b47e8c0e99c0dab98774c8a2f1da1a04a704a1234",
+      "publication_id": "b70e2fe7c50434ef552ffe5f472ab35df2d9b85a4a929cdab4b8ddb6c3de3cd3",
+      "snapshot_digest": "fca6877e251dea4dd9912fb7174e55529fe22e4513cce3eaa0ed08cd651d8e4f",
+      "snapshot_version": 89,
+      "version": 91
+    },
+    "byte_binding": {
+      "status": "PASSED",
+      "checked_version": 89,
+      "released_journal_version": 91,
+      "publication_id": "b70e2fe7c50434ef552ffe5f472ab35df2d9b85a4a929cdab4b8ddb6c3de3cd3",
+      "workbook_sha256": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967",
+      "manifest_sha256": "89acc9c0ca31fbb896e7e88b47e8c0e99c0dab98774c8a2f1da1a04a704a1234",
+      "snapshot_digest": "fca6877e251dea4dd9912fb7174e55529fe22e4513cce3eaa0ed08cd651d8e4f",
+      "assertions": [
+        "Reviewed bytes equal inspected candidate",
+        "Workbook SHA matches current candidate, publication and manifest",
+        "Manifest SHA matches current publication manifest_id",
+        "Manifest, candidate, publication and requested downloads bind same checked version",
+        "Review and publication snapshot digests match immutable manifest"
+      ]
+    },
+    "download_verification": "native-publication-download-verification.json",
+    "download_filenames": {
+      "workbook": "synthetic-pack-v89-current.xlsx",
+      "manifest": "synthetic-pack-v89-current-manifest.json"
+    },
+    "workbook_sha256": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967",
+    "manifest_sha256": "89acc9c0ca31fbb896e7e88b47e8c0e99c0dab98774c8a2f1da1a04a704a1234",
+    "candidate_preview_sha256": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967",
+    "downloaded_values": {
+      "fee": {
+        "sheet": "Pack",
+        "cell": "B6",
+        "value_decimal": "60000.00"
+      },
+      "statement_fee": {
+        "sheet": "Pack",
+        "cell": "B7",
+        "value_decimal": "60000.00"
+      },
+      "total": {
+        "sheet": "Pack",
+        "cell": "B8",
+        "value_decimal": "60000.00"
+      }
+    },
+    "source_versions": {
+      "capital:f77ad1787eb7ae0144137ce0d063d5b06aa7c29d19b9349fd770dcac0b47f8c9": 9,
+      "fee-rule:373328e8162bda13791e7eaac6dfe292ab5ed2234c837f8b6ebebabd27007de9": 9,
+      "original:93bf233b9c32549b37889c2db88ce3e190db348f90717dafb803478ca7e9b60e": 9,
+      "original:94059ab1559c503cacda93af5906301998ceed4b269d93c40f536e84fa1be49f": 9
+    },
+    "configuration_records": {
+      "mappings": null,
+      "policy": null,
+      "rule": {
+        "approval_id": "synthetic-approved-fee-rule",
+        "approved": true,
+        "currency": "GBP",
+        "entity_id": "0012",
+        "period": "2026-Q1",
+        "tolerance": "0.01",
+        "tolerance_version": "penny-v1",
+        "version": "fictional-fee-v1"
+      }
+    },
+    "template": {
+      "bindings": [
+        [
+          "fee",
+          "Pack",
+          "B6"
+        ],
+        [
+          "statement_fee",
+          "Pack",
+          "B7"
+        ],
+        [
+          "total",
+          "Pack",
+          "B8"
+        ]
+      ],
+      "template_hash": "9214501f237c869275ea5672aeff4f15ea0bbf4bd6610c5442adc997f286cdc7",
+      "version": "value-only-v1"
+    },
+    "rules": {
+      "mapping_version": "synthetic-template-v1",
+      "policy_version": "native-single-parser-v1",
+      "rule_version": "fictional-fee-v1"
+    },
+    "source_anchors": [
+      {
+        "source_id": "capital:f77ad1787eb7ae0144137ce0d063d5b06aa7c29d19b9349fd770dcac0b47f8c9",
+        "source_role": "capital",
+        "filename": "capital.csv",
+        "content_hash": "8321e47f55741e6ed9a80342605c8ddfe84e2524b561f3ee4f6eef56429ba2d7",
+        "document_version_id": "document:9754142325334d3dbaba1234b5d71f17",
+        "source_version": 9,
+        "locator": {
+          "column": "value",
+          "kind": "csv",
+          "row": 2
+        }
+      },
+      {
+        "source_id": "fee-rule:373328e8162bda13791e7eaac6dfe292ab5ed2234c837f8b6ebebabd27007de9",
+        "source_role": "fee-rule",
+        "filename": "fee-rule.csv",
+        "content_hash": "1eaac127c949537b5d4e0e048c3252f0c4fb339d711b0dd08321af488828aeb8",
+        "document_version_id": "document:776c83ca0c2e4241bc074e861cb0b646",
+        "source_version": 9,
+        "locator": {
+          "column": "value",
+          "kind": "csv",
+          "row": 2
+        }
+      },
+      {
+        "source_id": "original:93bf233b9c32549b37889c2db88ce3e190db348f90717dafb803478ca7e9b60e",
+        "source_role": "original",
+        "filename": "original.xlsx",
+        "content_hash": "9214501f237c869275ea5672aeff4f15ea0bbf4bd6610c5442adc997f286cdc7",
+        "document_version_id": "document:417e71162dcc4ba38e7613970cbb460a",
+        "source_version": 9,
+        "locator": {
+          "cell": "B7",
+          "kind": "xlsx",
+          "sheet": "Pack"
+        }
+      },
+      {
+        "source_id": "original:94059ab1559c503cacda93af5906301998ceed4b269d93c40f536e84fa1be49f",
+        "source_role": "original",
+        "filename": "original.xlsx",
+        "content_hash": "9214501f237c869275ea5672aeff4f15ea0bbf4bd6610c5442adc997f286cdc7",
+        "document_version_id": "document:417e71162dcc4ba38e7613970cbb460a",
+        "source_version": 9,
+        "locator": {
+          "cell": "B6",
+          "kind": "xlsx",
+          "sheet": "Pack"
+        }
+      }
+    ],
+    "exact_live_source_previews": [
+      "native-fee-source-preview.json",
+      "native-statement_fee-source-preview.json"
+    ],
+    "ready_sampling": {
+      "count_before": 5,
+      "count_after": 6,
+      "journal_revision_before": 89,
+      "journal_revision_after": 89
+    },
+    "cumulative_observed_work": {
+      "provenance": "LOCAL_OBSERVED",
+      "counts": {
+        "SOURCE_OPENED": 5,
+        "VALUE_INSPECTED": 0,
+        "READY_ITEM_SAMPLED": 6
+      },
+      "total_events": 11,
+      "first_event_at": "2026-09-05T18:39:00.695360+00:00",
+      "last_event_at": "2026-09-05T19:50:51.341858+00:00",
+      "elapsed_seconds": 4310.646498,
+      "actions": {
+        "CORRECTED": 14,
+        "RESOLVED": 0,
+        "APPROVED": 4,
+        "REJECTED": 0
+      }
+    },
+    "performed_in_native_test": {
+      "uploads": 3,
+      "corrections": 2,
+      "ready_samples": 1,
+      "independent_approvals": 1,
+      "publications": 1
+    },
+    "reopened_scope_report": "native-observed-review-work.json",
+    "viewport_screenshot": "native-reviewed-pack-viewport.png",
+    "viewport_dimensions": [
+      1280,
+      900
+    ],
+    "viewport_visually_inspected": true
+  },
+  "regression_evidence": [
+    {
+      "change": "Known fee_rate remains an exact decimal without a currency label",
+      "proof": [
+        "unit-results.json",
+        "native-reviewed-pack-viewport.png",
+        "native-after-review-browser-results.json"
+      ]
+    },
+    {
+      "change": "Selected fact follows its exact source occurrence through evidence links and fact dropdown; document tabs remain stable and missing occurrence never borrows another preview",
+      "proof": [
+        "unit-results.json",
+        "native-fee-source-preview.json",
+        "native-statement_fee-source-preview.json",
+        "story-after-review-browser-results.json"
+      ],
+      "scope_note": "Unit regressions use distinct values 75000 and 80000 with canonical and document-only citations plus another document. The native fixture has 75000 in both original cells; full selected occurrence row arrays and exact B6/B7 citations are verified independently against API evidence."
+    },
+    {
+      "change": "Current publication governs workbook/manifest query, versioned filename and downloaded bytes",
+      "proof": [
+        "native-publication-download-verification.json",
+        "current-publication-byte-binding.json",
+        "native-download-verification.txt"
+      ]
+    }
+  ],
+  "coverage_limits": [
+    "All eight required UI scenarios have final-source Chromium Storybook coverage; these are synthetic UI stories, not eight distinct native financial packs.",
+    "Authoritative soft-signal review/resolve is covered by backend API tests elsewhere; reader disagreement resolution here is browser-tested with Storybook fixtures rather than a native soft-signal financial pack.",
+    "Alternative-value correction and supported source-replacement affordances are unit-tested. No native alternative-treatment workflow is claimed.",
+    "Missing agreement, unknown dependency and unsupported workbook UI states have Storybook coverage and backend/core tests elsewhere, not separate native browser fixtures in this folder.",
+    "Historical PDF DISABLED and CAPTURED_REPLAY results are preserved honestly. No additional provider requests were made for final verification. Unmapped PDF reporting evidence remains financially blocked.",
+    "Observed work counts span repeated automated synthetic runs. elapsed_seconds includes pauses; it is neither active human work time nor measured customer savings.",
+    "The first final attempt could not connect because the fixed relay was stopped. After restarting it, a source-preview assertion detected stale served Vite transforms before correction. An explicit UI restart and saved HTTP source-marker proof preceded the final clean native pass. Neither failed attempt is counted as acceptance."
+  ],
+  "supersedes": "The native release in artifacts/final-ui is historical; use this newly released artifact and manifest for final acceptance after the independent-review repairs.",
+  "files": [
+    {
+      "path": "browser-environment.json",
+      "bytes": 3693,
+      "sha256": "06aa1368d97b26edf38f2a325efbc99d3e4f805593d322116c2ca390cc7c0a31"
+    },
+    {
+      "path": "build.log",
+      "bytes": 568,
+      "sha256": "4625029c2bcafb6c4ea5f5e283ab6a97e11e2776a01f435d524150a36ea9b0a4"
+    },
+    {
+      "path": "candidate-preview.xlsx",
+      "bytes": 5090,
+      "sha256": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967"
+    },
+    {
+      "path": "current-publication-byte-binding.json",
+      "bytes": 803,
+      "sha256": "803c3f0636e4524f6d37be3a5cad622460e56442f112c808bd26b63b2f7aade6"
+    },
+    {
+      "path": "narrow-approval.png",
+      "bytes": 181607,
+      "sha256": "d4c2cd838a693786bbf0cc406cadfc7996fae1398b4150eedcfe2955ce4fa745"
+    },
+    {
+      "path": "native-after-review-browser-results.json",
+      "bytes": 4419,
+      "sha256": "7e98f6a1aa0fe31c68f38325e7be25f74d09f0375c3be3e5f86d3d64d5e4b985"
+    },
+    {
+      "path": "native-browser.log",
+      "bytes": 339,
+      "sha256": "fd40f5e1e3f428e94c96e461a0995c49ecf97d44dccfd52e050780d5d32b79fe"
+    },
+    {
+      "path": "native-download-verification.txt",
+      "bytes": 136,
+      "sha256": "00ee85170a423034b9167fec410e1a4f39123adc821bd9b32f9f079b89f02970"
+    },
+    {
+      "path": "native-failed-repair.json",
+      "bytes": 253097,
+      "sha256": "37180580b29fdd3c1fb3ee56c8458edacebd0193885c16a8064844a30da55bd0"
+    },
+    {
+      "path": "native-fee-source-preview.json",
+      "bytes": 791,
+      "sha256": "fe58f8238cdbd008f8b3ff106215a167946bf845d590ed672f4e649046f29983"
+    },
+    {
+      "path": "native-observed-review-work.json",
+      "bytes": 12742,
+      "sha256": "4b1336abcb3f13416d42931d1d7f6bbcce313158f60a800c51de5a038c729264"
+    },
+    {
+      "path": "native-publication-download-verification.json",
+      "bytes": 1347,
+      "sha256": "57a9b4be3afa0517e7f25d0d64e6ee4dc254679a006fced21085bb9ff3e840df"
+    },
+    {
+      "path": "native-ready-snapshot.json",
+      "bytes": 258858,
+      "sha256": "7dee0e5e5f7088e2332bd54ecd04b2628736479b5ba699e7f1fc0b1dc5da3b37"
+    },
+    {
+      "path": "native-released-snapshot.json",
+      "bytes": 261662,
+      "sha256": "0485de4fff9e9def6a5aff6cfabb3947c535defa6038fd5bdc3fdd57d2942dbf"
+    },
+    {
+      "path": "native-reviewed-pack-viewport.png",
+      "bytes": 110158,
+      "sha256": "ea08cb62239f35f5175c30307e4a1de8a416281d6fa287fbffdc3dd272611aca"
+    },
+    {
+      "path": "native-reviewed-pack.png",
+      "bytes": 1890895,
+      "sha256": "53df431b5c5c48e0bee2000deb4b58ad2d77195fa639123e7d03dc99e6e779c8"
+    },
+    {
+      "path": "native-statement_fee-source-preview.json",
+      "bytes": 955,
+      "sha256": "47d4d6a1c27b2d162fc1aa46d4b5775923c0e27011ec1bb87f67b8d8e8411eb2"
+    },
+    {
+      "path": "pdf-captured-replay-citation.png",
+      "bytes": 1026846,
+      "sha256": "e3f7c08c76c78fff79493d9586ce1d05f545276d54d73acfebf2d54b756b013f"
+    },
+    {
+      "path": "pdf-captured_replay-snapshot.json",
+      "bytes": 52880,
+      "sha256": "d10d90d9df941511266bc11a8f582675df38d08b8998614b9d31a2fbd362a169"
+    },
+    {
+      "path": "pdf-disabled-browser-results.json",
+      "bytes": 4333,
+      "sha256": "89f30004c7400ce8f52d0740d1ed174bf329fa35715547746004db30258a9268"
+    },
+    {
+      "path": "pdf-disabled-snapshot.json",
+      "bytes": 11040,
+      "sha256": "bb7d66276a41f1544d554c4591cf3c8895618f0e166e26924ebc64f02fbd6e1f"
+    },
+    {
+      "path": "pdf-disabled-source.png",
+      "bytes": 273195,
+      "sha256": "6e2ca40f6347e37fcd49aa2a19ab716d21321307346e4769ecc735db49a31d4e"
+    },
+    {
+      "path": "pdf-original-citation.png",
+      "bytes": 34203,
+      "sha256": "362153e67171af7962251acd94355fac4b6bb3b6a36ec90bd8cab74712660712"
+    },
+    {
+      "path": "pdf-replay-browser-results.json",
+      "bytes": 4332,
+      "sha256": "75bd6e148f09de126bdd8d3e75ed96f9621332a4b74d9124947da9abcc8c59ea"
+    },
+    {
+      "path": "pdf-replay-browser.log",
+      "bytes": 284,
+      "sha256": "f149e73e86e40c3316ee4bf13961775f6710a694a02f1080f7ebacbc7917a8e0"
+    },
+    {
+      "path": "review-manifest.json",
+      "bytes": 11156,
+      "sha256": "89acc9c0ca31fbb896e7e88b47e8c0e99c0dab98774c8a2f1da1a04a704a1234"
+    },
+    {
+      "path": "reviewed-pack.xlsx",
+      "bytes": 5090,
+      "sha256": "1cb40981c066c0c6ebd494931d7ed781611246e6711308ce71877df14874d967"
+    },
+    {
+      "path": "served-ui-source-verification.json",
+      "bytes": 568,
+      "sha256": "affb6c5be74051f3a0f3413c97b6e92dbcfd6c80c14722b0288fe88b77e374f6"
+    },
+    {
+      "path": "story-after-review-browser-results.json",
+      "bytes": 17226,
+      "sha256": "2686ffc6d4c1cf9220bb874b66c7a389874981c42935fc3e4658b6facb13727f"
+    },
+    {
+      "path": "storybook-browser.log",
+      "bytes": 1943,
+      "sha256": "def6894ce8f756f416f4433b16ee23773d3287d6aea3832337d56f1e0fe03c60"
+    },
+    {
+      "path": "storybook-build.log",
+      "bytes": 4154,
+      "sha256": "b5253edd56bb2b497d7dcb3c6a06dc5e1c93dd157fdc983d1dff3e46ab5b1574"
+    },
+    {
+      "path": "storybook-static-source-verification.json",
+      "bytes": 1895,
+      "sha256": "fe8ab3a1e0dfa648d8b4149c6b77e23476ee30900799b0115b79f101ce377803"
+    },
+    {
+      "path": "unit-results.json",
+      "bytes": 12404,
+      "sha256": "beeeaf61b38591ec7ebec9378c80ea676168ace65ca154b8ab82b4ae74d670e7"
+    },
+    {
+      "path": "unit.log",
+      "bytes": 250,
+      "sha256": "caf49e71f9420bc3b81fd0c3f8d4514edd0dc79d3474a0fbec3f2a253b5ca65f"
+    }
+  ]
+}

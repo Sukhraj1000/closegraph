@@ -26,3 +26,8 @@ test-results/
 .DS_Store
 *.log
 *.tsbuildinfo
+
+# Local multi-service runtime and generated synthetic evidence
+.local/
+fixtures/generated/
+.cache/

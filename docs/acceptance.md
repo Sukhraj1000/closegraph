@@ -1,6 +1,6 @@
 # MVP acceptance: source-backed correction to reviewed output
 
-Status: acceptance criteria only. No application tests or browser journeys have been run by specification setup. OpenSpec validation is not runtime verification.
+Status: required acceptance criteria, covered by the recorded automated technical acceptance of the synthetic local MVP. Actual implementation and execution evidence is recorded in [the MVP acceptance report](verification/mvp-acceptance.md). OpenSpec validation is not runtime verification.
 
 ## Required demonstration
 

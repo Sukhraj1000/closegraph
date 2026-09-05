@@ -5,6 +5,7 @@ import re
 
 ROOT=Path(__file__).resolve().parents[1]
 CHANGE='openspec/changes/verify-corrected-reporting-pack'
+ARCHIVED_CHANGE='openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack'
 EPICS={
 'E0':('Hermes cron engineering and independent review','Native paused Hermes cron jobs, sandboxed coding/testing, review feedback and guarded merge policy. No custom server, listener, scheduler or QA bot.',['A01','A02','A03','A04']),
 'E1':('UI and reviewer workspace','React evidence-first correction, review and release journey. Own apps/web feature code and browser tests; API fixtures enable independent development, real API is required for final acceptance.',['9.1','9.2','9.3','9.4']),
@@ -40,14 +41,25 @@ AUTO={
 'A04':('Enable serial automatic merging under standing authorization','Implement and verify the selected Codex workflow under docs/engineering/standing-authorization.md. Keep the repository private. Use independent agent review, actual head/base test evidence, serial GitHub merges with an expected head SHA, and post-merge verification. A paid protection plan, distinct GitHub approving account and per-PR/final user sign-off are not prerequisites. Do not claim GitHub-enforced protection exists. Record actual runtime activation and failure recovery; authorization alone is not implementation evidence.',['docs/engineering/activation.md'],['A03'])}
 
 
+def resolve_change(root):
+    """Use this change's active checklist or its exact dated archive."""
+    for relative in (CHANGE, ARCHIVED_CHANGE):
+        directory = root / relative
+        if (directory / "tasks.md").is_file():
+            return directory
+    raise FileNotFoundError("OpenSpec checklist missing from the active or exact archived change")
+
+
 def build():
-    text=(ROOT/CHANGE/'tasks.md').read_text()
-    tasks=dict(re.findall(r'^- \[ \] (\d+\.\d+) (.+)$',text,re.M))
+    directory=resolve_change(ROOT)
+    change=directory.relative_to(ROOT).as_posix()
+    text=(directory/'tasks.md').read_text()
+    tasks=dict(re.findall(r'^- \[[ xX]\] (\d+\.\d+) (.+)$',text,re.M))
     mapped=[t for _,_,ts in EPICS.values() for t in ts if not t.startswith('A')]
     assert sorted(mapped)==sorted(tasks) and len(mapped)==len(set(mapped))
     issues=[]
     for epic,(title,scope,keys) in EPICS.items():
-        body=f'## Outcome\n{scope}\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] Automated technical acceptance recorded under the standing engineering authorization.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `{CHANGE}/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA.'
+        body=f'## Outcome\n{scope}\n\n## Ownership and parallel work\nThis is a workstream in one repository, not a separate service. Own only the named responsibilities; shared contracts/migrations have explicit ownership. Task-level prerequisites are listed on children. Fixture/contract development may run in parallel; final integration cannot be declared independent.\n\n## Definition of done\n- [ ] All child scope and acceptance criteria have real evidence.\n- [ ] Relevant regression/integration/E2E tests pass; no unexplained skips.\n- [ ] Changes received independent review.\n- [ ] Automated technical acceptance recorded under the standing engineering authorization.\n\n## Boundaries\nNo automatic phase-2 evidence requests/deadline alerts, arbitrary financial agents, production deployment, external data uploads or scope expansion. Product source: `{change}/tasks.md`, its capability specs, and `docs/acceptance.md`. Engineering method: native Hermes cron, macOS sandbox, independent review, tests and human QA.'
         issues.append(dict(key=epic,title=f'[Epic {epic}] {title}',kind='epic',epic=None,spec_tasks=[],labels=['epic',f'area:{epic.lower()}'],depends_on=[],body=body))
         for key in keys:
             if key.startswith('A'):
@@ -57,7 +69,7 @@ def build():
                 child_key=key
             else:
                 title=TITLES[key];child_key='T'+key;spec_tasks=[key];deps=['T'+x for x in DEPS.get(key,[])]
-                body=f'## Original OpenSpec task {key}\n{tasks[key]}\n\n## Source of truth\n- `{CHANGE}/tasks.md`, task {key}\n- `{CHANGE}/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics\' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation.'
+                body=f'## Original OpenSpec task {key}\n{tasks[key]}\n\n## Source of truth\n- `{change}/tasks.md`, task {key}\n- `{change}/design.md` and relevant `specs/*/spec.md` scenarios\n- `docs/acceptance.md`\n\nBackend abbreviated paths are relative to `apps/api/src/closegraph/`; UI component paths to `apps/web/src/features/packs/`. Python test paths are repository-relative; run a named test with `uv run --project apps/api pytest <test-path>`. Commands in the source task are future implementation verification, not tests already run.\n\n## Acceptance\n- [ ] Implement only the original task and its stated failure cases.\n- [ ] Run the exact named verification above and retain actual output.\n- [ ] Preserve source/decimal/context/version/security semantics from the capability specs.\n- [ ] Add/update integration or browser E2E only where changed boundaries/journeys need it; run existing relevant coverage regardless and explain selection.\n- [ ] Independent reviewer verifies scope and exact head/base evidence.\n\n## Parallel development versus completion\nUse typed fixtures/contract adapters to work independently of unfinished neighbours. Required real API/database/browser/provider acceptance remains outstanding until actually exercised. UI tasks can begin after scaffolding/contracts, but cannot close solely on mocked API results. Missing Reducto permission/credentials remains a blocker, never a passing replay.\n\n## Out of scope\nOther epics\' ownership, automatic phase-2 work, unapproved infrastructure, private data disclosure and unrelated refactors. Product implementation has not started at issue creation.'
             issues.append(dict(key=child_key,title=f'[{child_key}] {title}',kind='task',epic=epic,spec_tasks=spec_tasks,labels=['task',f'area:{epic.lower()}','automation' if epic=='E0' else 'mvp'],depends_on=deps,body=body))
     out=ROOT/'docs/engineering';out.mkdir(parents=True,exist_ok=True)
     (out/'issue-catalog.json').write_text(json.dumps(dict(schema_version=1,repo='Sukhraj1000/closegraph',issues=issues),indent=2)+'\n')

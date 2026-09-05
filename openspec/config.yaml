@@ -26,7 +26,9 @@ context: |
   only after use case 1 passes real end-to-end acceptance. MCP and accounting posting are deferred.
   Input adapters are bounded; the core is reusable, not built around the supplied datasets.
   No universal file support, accuracy guarantee or autonomous legal/accounting interpretation.
-  This repository contains specifications only. Unchecked tasks are not implemented.
+  Use case 1 is implemented and technically accepted with recorded synthetic runtime evidence.
+  Five baseline specs and the archived completed checklist define the current implementation.
+  No phase-2 change is active; unchecked future tasks are not implemented.
   Use direct UK English and keep one working vertical slice before broader features.
 
 rules:
