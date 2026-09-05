@@ -25,7 +25,7 @@ from urllib.request import ProxyHandler, build_opener
 PORTS = {"api": 24180, "ui": 24173, "dagster_web": 24181, "dagster_grpc": 24182}
 ORDER = ("api", "dagster_grpc", "dagster_daemon", "dagster_web", "ui")
 ENV_KEYS = {
-    "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN",
+    "CLOSEGRAPH_FUND_MANAGER_PASSWORD", "CLOSEGRAPH_INVESTOR_PASSWORD", "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN",
     "COMPOSE_PROJECT_NAME", "CLOSEGRAPH_POSTGRES_IMAGE", "CLOSEGRAPH_POSTGRES_PORT",
     "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "CLOSEGRAPH_DATABASE_URL",
     "CLOSEGRAPH_PREPARER_PASSWORD", "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR",
@@ -150,6 +150,8 @@ class LocalRuntime:
                                          "@127.0.0.1:55432/closegraph",
                 "CLOSEGRAPH_PREPARER_PASSWORD": secrets.token_urlsafe(18),
                 "CLOSEGRAPH_REVIEWER_PASSWORD": secrets.token_urlsafe(18),
+                "CLOSEGRAPH_FUND_MANAGER_PASSWORD": secrets.token_urlsafe(18),
+                "CLOSEGRAPH_INVESTOR_PASSWORD": secrets.token_urlsafe(18),
                 "CLOSEGRAPH_DATA_DIR": str(self.state_dir / "data"),
             }
             fd = os.open(self.env_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -168,7 +170,7 @@ class LocalRuntime:
             instance.write_text("telemetry:\n  enabled: false\nrun_queue:\n  max_concurrent_runs: 3\nrun_monitoring:\n  enabled: true\n")
             instance.chmod(0o600)
         return {"initialized": True, "env_file": str(self.env_file),
-                "state_dir": str(self.state_dir), "credentials": "preparer/reviewer passwords are in the private env file"}
+                "state_dir": str(self.state_dir), "credentials": "Local role passwords are in the private env file"}
 
     def load(self):
         info = self.env_file.stat()
@@ -251,7 +253,7 @@ class LocalRuntime:
             environment.update({name: self.config[name] for name in (
                 "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_PREPARER_PASSWORD",
                 "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR")})
-            for name in ("CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN"):
+            for name in ("CLOSEGRAPH_FUND_MANAGER_PASSWORD", "CLOSEGRAPH_INVESTOR_PASSWORD", "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN"):
                 if name in self.config:
                     environment[name] = self.config[name]
         return environment

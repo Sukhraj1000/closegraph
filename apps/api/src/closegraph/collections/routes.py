@@ -18,6 +18,13 @@ class Upload(Version):
     filename: str=Field(min_length=1,max_length=256,pattern=r'^[^/\\\x00-\x1f]+$')
     media_type: str=Field(max_length=256)
     content_base64: str=Field(min_length=1,max_length=44739244)
+    document_id: str|None=None
+    parent_revision_id: str|None=None
+    reason: str=Field(default='Initial upload',min_length=1,max_length=2000)
+    period: str|None=Field(default=None,max_length=100)
+    idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
+    task_id: str|None=None
+    as_of: str|None=Field(default=None,pattern=r'^\d{4}-\d{2}-\d{2}$')
 class Edit(Version):
     dataset_id: str
     edits: list[dict[str,Any]]=Field(min_length=1,max_length=200)
@@ -39,6 +46,33 @@ class Export(Version):
     bindings: dict[str,Any]|None=None
 
 
+class Membership(Command):
+    actor_id: str
+    party: Literal['accountant','account_manager','fund_manager','investor']
+    document_ids: list[str]=Field(default_factory=list,max_length=500)
+    request_ids: list[str]=Field(default_factory=list,max_length=500)
+class Members(Version):
+    members: list[Membership]=Field(max_length=200)
+class Requirements(Version):
+    requirements: list[dict[str,Any]]=Field(max_length=100)
+class Coverage(Version):
+    reason: str=Field(min_length=1,max_length=2000)
+class DocumentConfig(Version):
+    business_keys: dict[str,Any]
+class Flag(Version):
+    title: str=Field(min_length=1,max_length=200)
+    reason: str=Field(min_length=1,max_length=2000)
+    owner_actor_id: str
+    document_id: str|None=None
+    blocking: bool=False
+    idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
+class TaskAction(Version):
+    action: Literal['acknowledge','evidence_received','request_verification','resolve','release','reopen','make_blocking']
+    reason: str=Field(default='',max_length=2000)
+    source_id: str|None=None
+    idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
+
+
 def collection_router(auth,services):
     router=APIRouter(prefix='/api/collections')
     def user(request:Request):
@@ -54,12 +88,14 @@ def collection_router(auth,services):
     def listing(actor=Depends(user)):return call('list',actor)
     @router.post('',status_code=201)
     def create(command:Create,actor=Depends(user)):return call('create',actor,command.title.strip(),command.fund_id)
+    @router.get('/notifications')
+    def inbox(actor=Depends(user)):return call('inbox',actor)
     @router.get('/{identity}')
     def get(identity:str,actor=Depends(user)):return call('get',identity,actor)
     @router.get('/{identity}/history')
     def history(identity:str,actor=Depends(user)):return call('history',identity,actor)
     @router.post('/{identity}/sources')
-    def upload(identity:str,command:Upload,actor=Depends(user)):return call('upload',identity,actor,command.expected_version,command.filename,command.media_type,command.content_base64)
+    def upload(identity:str,command:Upload,actor=Depends(user)):return call('upload',identity,actor,command.expected_version,command.filename,command.media_type,command.content_base64,document_id=command.document_id,parent_revision_id=command.parent_revision_id,reason=command.reason,period=command.period,idempotency_key=command.idempotency_key,task_id=command.task_id,as_of=command.as_of)
     @router.post('/{identity}/process')
     def process(identity:str,command:Process,actor=Depends(user)):return call('process',identity,actor,command.expected_version,command.stage,command.source_id)
     @router.get('/{identity}/datasets/{dataset_id}/rows')
@@ -83,4 +119,24 @@ def collection_router(auth,services):
     def artifact(identity:str,artifact_id:str,actor=Depends(user)):return download(identity,actor,artifact_id,True)
     @router.get('/{identity}/candidates/{candidate_id}')
     def candidate(identity:str,candidate_id:str,actor=Depends(user)):return download(identity,actor,candidate_id,candidate=True)
+    @router.get('/{identity}/participants')
+    def participants(identity:str,actor=Depends(user)):return call('participants',identity,actor)
+    @router.put('/{identity}/members')
+    def members(identity:str,command:Members,actor=Depends(user)):return call('members',identity,actor,command.expected_version,[m.model_dump() for m in command.members])
+    @router.put('/{identity}/requirements')
+    def requirements(identity:str,command:Requirements,actor=Depends(user)):return call('requirements',identity,actor,command.expected_version,command.requirements)
+    @router.post('/{identity}/evaluate')
+    def evaluate(identity:str,command:Version,actor=Depends(user)):return call('evaluate',identity,actor,command.expected_version)
+    @router.post('/{identity}/sources/{source_id}/verify-coverage')
+    def coverage(identity:str,source_id:str,command:Coverage,actor=Depends(user)):return call('verify_coverage',identity,actor,command.expected_version,source_id,command.reason)
+    @router.put('/{identity}/documents/{document_id}')
+    def document(identity:str,document_id:str,command:DocumentConfig,actor=Depends(user)):return call('configure_document',identity,actor,command.expected_version,document_id,command.business_keys)
+    @router.get('/{identity}/comparisons/{comparison_id}')
+    def comparison(identity:str,comparison_id:str,offset:Annotated[int,Query(ge=0)]=0,limit:Annotated[int,Query(ge=1,le=500)]=100,actor=Depends(user)):return call('comparison',identity,actor,comparison_id,offset,limit)
+    @router.post('/{identity}/flags')
+    def flag(identity:str,command:Flag,actor=Depends(user)):return call('flag',identity,actor,command.expected_version,command.title,command.reason,command.owner_actor_id,document_id=command.document_id,blocking=command.blocking,idempotency_key=command.idempotency_key)
+    @router.post('/{identity}/tasks/{task_id}/actions')
+    def task_action(identity:str,task_id:str,command:TaskAction,actor=Depends(user)):return call('task_action',identity,actor,command.expected_version,task_id,command.action,command.reason,source_id=command.source_id,idempotency_key=command.idempotency_key)
+    @router.post('/{identity}/comparisons/{comparison_id}/review')
+    def review_comparison(identity:str,comparison_id:str,command:Coverage,actor=Depends(user)):return call('review_comparison',identity,actor,command.expected_version,comparison_id,command.reason)
     return router

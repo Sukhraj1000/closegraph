@@ -39,7 +39,8 @@ def build_services(*,seed=False,migrate=False,pdf_provider=None):
     url=os.environ['CLOSEGRAPH_DATABASE_URL']
     scopes=development_scopes()
     accounts=[DevAccount.create(name,os.environ['CLOSEGRAPH_'+name.upper()+'_PASSWORD'],role,scopes) for name,role in [('preparer','PREPARER'),('reviewer','REVIEWER')]]
-    auth=LocalAuth(accounts=accounts,collection_grants={name:{(scope.tenant_id,scope.fund_id) for scope in scopes} for name in ('preparer','reviewer')});engine=make_engine(url)
+    accounts.extend(DevAccount.create(name,os.environ['CLOSEGRAPH_'+name.upper()+'_PASSWORD'],role,()) for name,role in [('fund_manager','FUND_MANAGER'),('investor','INVESTOR')] if os.environ.get('CLOSEGRAPH_'+name.upper()+'_PASSWORD'))
+    auth=LocalAuth(accounts=accounts,collection_grants={a.username:{(scope.tenant_id,scope.fund_id) for scope in scopes} for a in accounts});engine=make_engine(url)
     from closegraph.collections.service import CollectionServices
     from closegraph.collections.provider import collection_pdf_provider
     if migrate:

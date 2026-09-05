@@ -1,5 +1,5 @@
 import { test as base, expect, type BrowserContext } from '@playwright/test';
-const allowedPorts = new Set(['24173', '24174', '24180']);
+const allowedPorts = new Set(['24173', '24174', '24180', '24273', '24280']);
 
 // The optional remote browser runs on an internal container network. Forward only
 // assigned local application surfaces; the browser receives no host mounts or

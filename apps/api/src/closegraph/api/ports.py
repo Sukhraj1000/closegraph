@@ -23,7 +23,7 @@ from closegraph.contracts import (
     ConfigurationChangeRequest,
 )
 
-Role = Literal["PREPARER", "REVIEWER"]
+Role = Literal["PREPARER", "REVIEWER", "FUND_MANAGER", "INVESTOR"]
 
 
 class Actor(Contract):

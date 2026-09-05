@@ -26,6 +26,7 @@ def collection_definitions(services):
     job=define_asset_job('process_collection',selection=assets,executor_def=in_process_executor)
     @sensor(job=job,minimum_interval_seconds=5,default_status=DefaultSensorStatus.RUNNING)
     def collection_requests(context):
+        services.collections.sweep_deadlines()
         for request in services.collections.pending():
             key=request['id'];runs=context.instance.get_runs(filters=RunsFilter(tags={'closegraph/collection-request':key}),limit=10)
             if any(not run.is_finished for run in runs):continue

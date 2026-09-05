@@ -165,7 +165,7 @@ class LocalAuth:
             account = self._accounts.get(actor_id)
             if not self._enabled(account) or scope not in account.scopes:
                 raise DomainNotFound()
-            if action not in allowed[account.role]:
+            if action not in allowed.get(account.role,set()):
                 raise DomainForbidden()
 
     @contextmanager
@@ -191,7 +191,19 @@ class LocalAuth:
         from .ports import DomainForbidden
         with self._lock:
             account=self._accounts.get(actor_id)
-            allowed={'PREPARER':{'inspect','prepare','download'},'REVIEWER':{'inspect','review','download'}}
-            if not self._enabled(account) or action not in allowed[account.role]:
+            allowed={'PREPARER':{'inspect','prepare','download'},'REVIEWER':{'inspect','review','download'},'FUND_MANAGER':{'inspect','download'},'INVESTOR':{'inspect','download'}}
+            if not self._enabled(account) or action not in allowed.get(account.role,set()):
                 raise DomainForbidden()
             yield self._collection_grants.get(actor_id,frozenset())
+
+    def collection_actor(self, actor_id):
+        from .ports import DomainForbidden
+        with self._lock:
+            account=self._accounts.get(actor_id)
+            if not self._enabled(account): raise DomainForbidden()
+            return {'actor_id':actor_id,'role':account.role}
+
+    def collection_participants(self, tenant_id, fund_id):
+        with self._lock:
+            return [{'actor_id':name,'role':a.role} for name,a in self._accounts.items()
+                    if self._enabled(a) and (tenant_id,fund_id) in self._collection_grants.get(name,())]
