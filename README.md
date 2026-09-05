@@ -1,8 +1,14 @@
 # CloseGraph
 
-A local correction-and-verification workspace for supported private-fund reporting: inspect the source, correct a discrepancy, rerun its checks, and release the exact independently reviewed workbook.
+A local workspace for extracting varied source files, checking the evidence, applying explicit deterministic transformations, and releasing independently reviewed CSV/XLSX outputs.
 
-## Current scope
+## Collections
+
+The default workspace accepts varied CSV/XLSX layouts and configured Reducto PDF extraction. Review source-linked tables, resolve errors, select headers and accept the exact input version. Reusable versioned recipes define mappings, joins, Decimal calculations, classification, allocation, reshaping and required checks. An independent reviewer inspects exact draft exports before those bytes can be released.
+
+See the [collection workflow and limits](docs/engineering/collections-workflow.md), [recipe reference](docs/engineering/collection-recipes.md), and [collection verification](docs/verification/collections-acceptance.md). PDF extraction is AI-assisted and requires review; confidence is not proof of correctness. Native spreadsheet extraction and transformations do not use an LLM. The direct collections implementation leaves OpenSpec unchanged, as requested.
+
+## Existing reporting packs
 
 The use-case-1 MVP is implemented and has passed automated technical acceptance. The [acceptance evidence](docs/verification/mvp-acceptance.md) records actual commands, scenario coverage, artifact identities and coverage limits. It is the completion record; a successful pipeline alone does not establish financial correctness.
 
@@ -22,9 +28,9 @@ python3.12 scripts/local_runtime.py up
 python3.12 scripts/local_runtime.py status
 ```
 
-Open [CloseGraph](http://127.0.0.1:24173). `init` creates distinct random local `preparer` and `reviewer` passwords in the owner-only `.local/dev-runtime/.env`; it prints the location without printing secrets. Seeded packs separate the native reporting journey from the PDF evidence demonstration. Use the explicitly labelled files in [fixtures/synthetic](fixtures/synthetic/README.md). These fictional rules are test authority, not general accounting treatment.
+Open [CloseGraph](http://127.0.0.1:24173). `init` creates distinct random local `preparer` and `reviewer` passwords in the owner-only `.local/dev-runtime/.env`; it prints the location without printing secrets. The Collections tab creates independent source collections. The Reports tab retains the existing native reporting journey and PDF evidence demonstration. Use the explicitly labelled files in [fixtures/synthetic](fixtures/synthetic/README.md). These fictional rules are test authority, not general accounting treatment.
 
-Stop with `python3.12 scripts/local_runtime.py down`; the managed database volume and source bytes are retained. Services bind to localhost and run under macOS Seatbelt. The runtime does not inherit provider, GitHub or Codex credentials and has no external provider egress.
+Stop with `python3.12 scripts/local_runtime.py down`; the managed database volume and source bytes are retained. Services bind to localhost and run under macOS Seatbelt. The runtime does not inherit provider, GitHub or Codex credentials and has no external provider egress. Live collections PDFs use the bounded loopback gateway described in the collection workflow; its provider key remains outside workers.
 
 ## Engineering without repeated approvals
 
@@ -52,6 +58,6 @@ OpenSpec is pinned locally. The [completed implementation checklist](openspec/ch
 
 Checks, parser observations, review decisions, execution state and version freshness remain separate. Hard blockers override soft confidence. Corrections create new versions, and publication requires an independent decision over the exact current checked artifact. A downloaded historical output remains historical; the application cannot recall copies.
 
-The repository contains labelled synthetic inputs. Private datasets, interview PDFs, LP details and provider credentials remain outside Git. Supported mappings and accounting treatment must be explicit; arbitrary documents, general spreadsheet recalculation, live Ylookup integration, production IAM/compliance and autonomous accounting are not claimed.
+The repository contains labelled synthetic inputs. Private datasets, interview PDFs, LP details and provider credentials remain outside Git. Supported mappings and accounting treatment must be explicit; universal document accuracy, general spreadsheet recalculation, live Ylookup integration, production IAM/compliance and autonomous accounting are not claimed.
 
 Use case 2—missing-evidence requests, owners, deadlines and escalation—remains deferred. This build does not deploy production services, provision paid infrastructure, distribute investor reports or post accounting transactions.
