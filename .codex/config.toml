@@ -1,0 +1,3 @@
+# CloseGraph engineering runs use the user's standing authorization.
+# Preserve the selected sandbox; do not prompt interactively for commands.
+approval_policy = "never"

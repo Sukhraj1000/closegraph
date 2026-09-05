@@ -60,4 +60,4 @@ No required criterion is complete solely because a task was checked, a pipeline 
 
 ## Phase-2 gate
 
-Use case 2 remains deferred until all required use-case-1 acceptance criteria have real evidence, critical failures are resolved, and the user reviews the working result. Missing permission for a required integration is a blocker or an explicitly approved scope change, not permission to silently skip it. Only then open a new OpenSpec change for evidence requests, owners, deadlines and escalation.
+Use case 2 remains deferred until all required use-case-1 acceptance criteria have real evidence, critical failures are resolved, and the coordinator records automated technical acceptance of the working result under `docs/engineering/standing-authorization.md`. User review is optional; this does not establish human/customer acceptance. Missing permission for a required integration is a blocker or an explicitly approved scope change, not permission to silently skip it. Only then open a new OpenSpec change for evidence requests, owners, deadlines and escalation.

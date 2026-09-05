@@ -39,7 +39,7 @@ class CatalogueTests(unittest.TestCase):
                                          'A01':{'url':'https://github.com/example/repo/issues/2'}})
         self.assertIn('<!-- closegraph:catalog=T1.1 -->',rendered)
         self.assertIn('https://github.com/example/repo/issues/1',rendered)
-        self.assertIn('Automation is paused',rendered)
+        self.assertIn('Standing engineering authorization',rendered)
         self.assertNotIn('loop:ready',rendered)
 
     def test_resumed_task_verification_rejects_body_and_label_drift(self):
