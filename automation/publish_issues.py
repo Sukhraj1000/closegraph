@@ -64,7 +64,7 @@ def render(item, index, children=None):
     if children is not None:
         sections += ["## Child issues\n" + "\n".join(
             f"- [ ] {entry['url']}" for entry in children)]
-    sections += ["## Operating boundary\nAutomation is paused. This issue is not permission to start a worker, change scope, bypass review, upload private data or enable external services. The user owns final integration/QA. Adding an issue is not implementation evidence."]
+    sections += ["## Operating boundary\nStanding engineering authorization is recorded in docs/engineering/standing-authorization.md. Implement, verify, repair and merge the active MVP without per-step or final human engineering sign-off. Independent review and actual test evidence remain required; adding an issue is not implementation evidence. Product financial review and external-data boundaries remain as specified."]
     return "\n\n".join(sections) + "\n"
 
 

@@ -48,9 +48,9 @@ Scaffolding, local services, snapshot-bound computational orchestration and reco
 
 Tasks: T1.1, T1.3, T1.4, T6.1, T6.2, T6.3, T6.4, T6.5.
 
-## E7: Test harness, fixtures and human acceptance
+## E7: Test harness, fixtures and technical acceptance
 
-Labelled fixtures, deterministic integration/E2E harness and evidence reports. Each feature owns necessary tests; user owns exploratory QA and final acceptance. No QA bot.
+Labelled fixtures, deterministic integration/E2E harness and evidence reports. Each feature owns necessary tests; the coordinator records automated technical acceptance. User review is optional.
 
 Tasks: T1.2, T10.1, T10.2, T10.3, T10.4.
 

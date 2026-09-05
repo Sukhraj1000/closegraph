@@ -26,7 +26,7 @@ All of the following must have recorded evidence in the phase-1 acceptance repor
 - A failed correction cannot be released; a successful correction is visible in the downloaded output and source-linked manifest.
 - Hard-gate precedence, contextual parser disagreement, independent review, unknown dependencies, invalidated approvals, retries/restarts and publication races behave as specified.
 - Native CSV/XLSX has actual runtime evidence. PDF adapter contract tests use labelled captured/synthetic responses, and full MVP acceptance requires an authorised live Reducto test. If provider approval/credentials are absent, the native demo can proceed but full acceptance and phase 2 remain blocked unless the user explicitly approves a narrower scope and the specs are updated.
-- The user reviews the demonstrated MVP; the report distinguishes tested behaviour from unresolved live-provider/pilot assumptions.
+- The coordinator records automated technical acceptance under `docs/engineering/standing-authorization.md`; user review is optional. The report distinguishes tested behaviour from unresolved live-provider/pilot assumptions and does not claim human/customer acceptance.
 
 After this gate, open a separate OpenSpec change for phase 2. Do not pre-build a generic workflow platform "to prepare" for it.
 

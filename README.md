@@ -2,6 +2,10 @@
 
 A correction-and-verification layer for private-fund reporting: **what changed, what does it affect, and is the corrected pack ready for approval?**
 
+## Current engineering authorization
+
+The user authorized a Codex-led local MVP build with automatic engineering decisions, review, repair and merging, and no final human engineering sign-off. See [standing authorization](docs/engineering/standing-authorization.md); it supersedes the historical setup/activation restrictions below. Financial approvals within the application still follow the product specification. This authorization does not itself claim the new runner is implemented.
+
 ## Status
 
 The financial application remains a specification workspace: OpenSpec is initialised, but no financial UI/API or live Ylookup integration is implemented. All 40 product implementation tasks remain unchecked. Repository-local engineering automation is a separate deliverable under `automation/`, built for paused operation; see its [architecture](docs/engineering/architecture.md), [activation gates](docs/engineering/activation.md) and [verification report](docs/verification/engineering-automation.md). No production security/compliance claim is made.
