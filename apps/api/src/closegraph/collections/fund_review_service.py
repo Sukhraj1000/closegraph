@@ -3,6 +3,7 @@
 Checks describe a selected review scope, never certification of a fund's accounts.
 Dagster performs extraction and evaluation; this service records authority and versions.
 """
+from .presentation import actor_name
 from copy import deepcopy
 from datetime import datetime
 from html import escape
@@ -564,7 +565,7 @@ class FundReviewMixin:
             if changes.get('available'):
                 lines.append('<h2>Since the previous evaluation</h2><p>' + ' · '.join(text(changes.get(k, 0)) + ' ' + k for k in ('fixed', 'outstanding', 'new', 'withdrawn')) + '</p>')
             if reviewed:
-                lines.append('<h2>Independent review</h2><p>' + text(review['review']['reason']) + '</p><small>' + text(review['review']['actor_id']) + ' · ' + text(review['review']['at']) + '</small>')
+                lines.append('<h2>Independent review</h2><p>' + text(review['review']['reason']) + '</p><small>' + text(actor_name(review['review']['actor_id'])) + ' · ' + text(review['review']['at']) + '</small>')
             lines.append('</body></html>')
             content = ''.join(lines).encode()
             self._revision(session, row, state, actor, 'fund_review_downloaded', {'reviewed': reviewed, 'result_hash': review['result_hash'], 'fingerprint': review['fingerprint']})

@@ -87,7 +87,7 @@ class _Session:
 
 class LocalAuth:
     def __init__(self, *, accounts: Iterable[DevAccount] = (), ttl_seconds: int = 3600,
-                 clock: Callable[[], float] = time.monotonic, max_sessions: int = 1024, collection_grants=None):
+                 clock: Callable[[], float] = time.monotonic, max_sessions: int = 1024, collection_grants=None, login_aliases=None):
         if type(ttl_seconds) is not int or ttl_seconds <= 0:
             raise ValueError("session TTL must be a positive integer")
         if type(max_sessions) is not int or max_sessions <= 0:
@@ -96,6 +96,10 @@ class LocalAuth:
         self._accounts = {account.username: account for account in account_list}
         if len(self._accounts) != len(account_list):
             raise ValueError("duplicate development account")
+        self._login_aliases = dict(login_aliases or {})
+        if any(not isinstance(alias, str) or not alias or alias in self._accounts or target not in self._accounts
+               for alias, target in self._login_aliases.items()):
+            raise ValueError("login aliases must name existing accounts without shadowing one")
         self.ttl_seconds, self._clock, self._max_sessions = ttl_seconds, clock, max_sessions
         self._sessions: dict[str, _Session] = {}
         self._disabled: set[str] = set()
@@ -112,7 +116,7 @@ class LocalAuth:
 
     def login(self, username: str, password: str) -> tuple[str, Principal] | None:
         with self._lock:
-            account = self._accounts.get(username)
+            account = self._accounts.get(self._login_aliases.get(username, username))
             encoded = account.password_hash if account else self._dummy_hash
         valid = verify_password(password, encoded)
         with self._lock:
@@ -123,7 +127,7 @@ class LocalAuth:
             if len(self._sessions) >= self._max_sessions:
                 self._sessions.pop(next(iter(self._sessions)))
             token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
-            self._sessions[self._key(token)] = _Session(username, csrf, now + self.ttl_seconds)
+            self._sessions[self._key(token)] = _Session(account.username, csrf, now + self.ttl_seconds)
             return token, Principal(Actor(actor_id=account.username, role=account.role), account.scopes, csrf)
 
     def resolve(self, token: str | None) -> Principal | None:

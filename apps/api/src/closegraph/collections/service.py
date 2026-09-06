@@ -1,4 +1,5 @@
 """Versioned collection workflow. Parsers propose; people accept; code transforms."""
+from .presentation import actor_name
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -61,7 +62,7 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
     def _public(self, state, actor=None):
         self._initialize(state)
         value=deepcopy(state)
-        for member in value.get('members',[]):member['display_name']=member['actor_id'].replace('_',' ').title()
+        for member in value.get('members',[]):member['display_name']=actor_name(member['actor_id'])
         for d in value['datasets']: d.pop('data_hash',None);d.pop('original_hash',None)
         for s in value['sources']: s.pop('content_hash',None)
         for c in value['candidates']:
