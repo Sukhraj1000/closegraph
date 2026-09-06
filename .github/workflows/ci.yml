@@ -146,7 +146,13 @@ jobs:
           sudo xcode-select --switch /Library/Developer/CommandLineTools
           test "$(xcode-select --print-path)" = "/Library/Developer/CommandLineTools"
           /usr/bin/git --version
-      - run: uv python install 3.12
+      - name: Install the sandbox-readable Python toolchain
+        # Seatbelt permits the active distribution under uv's normal user path.
+        # setup-uv otherwise relocates it to an untrusted runner temp directory.
+        run: |
+          export UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"
+          printf 'UV_PYTHON_INSTALL_DIR=%s\n' "$UV_PYTHON_INSTALL_DIR" >> "$GITHUB_ENV"
+          uv python install 3.12
       - run: uv run --no-project --managed-python --python 3.12 python -m unittest discover -s automation/tests -v
       - run: uv run --no-project --managed-python --python 3.12 python scripts/local_runtime.py self-test
       - run: node --test scripts/demo.test.mjs
