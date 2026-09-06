@@ -14,7 +14,7 @@ export class CollectionsApi {
  list(signal?:AbortSignal){return this.request<Collection[]>('/collections','GET',undefined,signal);}
  get(id:string,signal?:AbortSignal){return this.request<Collection>(path(id),'GET',undefined,signal);}
  create(title:string,fund_id:string){return this.request<Collection>('/collections','POST',{title,fund_id});}
- upload(id:string,expected_version:number,file:{filename:string;media_type:string;content_base64:string},options?:{document_id?:string;parent_revision_id?:string;reason?:string;period?:string;as_of?:string;idempotency_key?:string;task_id?:string}){return this.request<Collection>(path(id)+'/sources','POST',{expected_version,...file,...options});}
+ upload(id:string,expected_version:number,file:{filename:string;media_type:string;content_base64:string},options?:{document_id?:string;parent_revision_id?:string;reason?:string;period?:string;as_of?:string;idempotency_key?:string;task_id?:string;side?:'statement'|'journal';defer_processing?:boolean}){return this.request<Collection>(path(id)+'/sources','POST',{expected_version,...file,...options});}
  requirements(id:string,expected_version:number,requirements:Requirement[]){return this.request<Collection>(path(id)+'/requirements','PUT',{expected_version,requirements});}
  evaluate(id:string,expected_version:number){return this.request<Collection>(path(id)+'/evaluate','POST',{expected_version});}
  taskAction(id:string,expected_version:number,taskId:string,action:string,reason:string,source_id?:string){return this.request<Collection>(path(id)+'/tasks/'+encodeURIComponent(taskId)+'/actions','POST',{expected_version,action,reason,idempotency_key:requestKey('action:'+taskId+':'+action+':'+expected_version),...(source_id?{source_id}:{})});}

@@ -1,0 +1,11 @@
+import {render,screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {describe,it,expect,vi} from 'vitest';
+import {ReconciliationWorkspace} from './Workspace';
+const session={username:'accountant',role:'PREPARER',csrf_token:'test',collection_funds:[{tenant_id:'t',fund_id:'f'}]};
+describe('result evidence',()=>{it('opens all batch evidence and omits empty status filters',async()=>{
+ const work={id:'work',title:'Actual workflow shape',version:2,status:'NEEDS_REVIEW',sources:[],datasets:[],tasks:[],notifications:[],history:[],access:{can_prepare:true,restricted:false},reconciliation:{status:'COMPLETE',source_sides:{},config:{},suggestions:[],summary:{difference:1}}};
+ const row={id:'item',status:'difference',reason:'The recorded cash amount differs',statement_amount:'100.00',journal_amount:'110.00',difference:'10.00',account:'Bank A',currency:'GBP',reference:'R1',statement:[{values:{x:'statement evidence'}}],journal:[{values:{x:'journal cash leg one'}},{values:{x:'journal cash leg two'}}]};
+ vi.spyOn(globalThis,'fetch').mockImplementation(async input=>{const url=String(input);if(url==='/api/collections')return new Response(JSON.stringify([work]));if(url==='/api/collections/work')return new Response(JSON.stringify(work));if(url.includes('/reconciliation/results?')){expect(new URL(url,'http://localhost').searchParams.has('status')).toBe(false);return new Response(JSON.stringify({items:[row],total:1,summary:{difference:1},coverage:{complete:false,tables:[]}}));}throw Error(url);});
+ render(<ReconciliationWorkspace session={session} notice="" onLogout={()=>{}} onSessionChange={()=>{}}/>);const user=userEvent.setup();await user.click(screen.getByRole('button',{name:'Recent work'}));await user.click(await screen.findByRole('button',{name:/Actual workflow shape/}));await user.click(await screen.findByRole('button',{name:'View item'}));expect(screen.getByText('journal cash leg one')).toBeVisible();expect(screen.getByText('journal cash leg two')).toBeVisible();expect(screen.getByText('Difference: 10.00')).toBeVisible();expect(screen.getByText('Compared amount: GBP 100.00')).toBeVisible();expect(screen.getAllByText('Compared group amount: GBP 110.00')).toHaveLength(2);expect(screen.getByText('Bank A / GBP')).toBeVisible();
+});});
