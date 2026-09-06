@@ -26,6 +26,7 @@ test-results/
 .DS_Store
 *.log
 *.tsbuildinfo
+.vercel/
 
 # Local multi-service runtime and generated synthetic evidence
 .local/

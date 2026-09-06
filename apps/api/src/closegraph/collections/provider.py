@@ -67,8 +67,12 @@ class CachedGatewayProvider:
         return self.gateway.parse_pdf(source,scope=scope,document_version_id=document_version_id)
 
 def collection_pdf_provider(environment):
-    if environment.get('CLOSEGRAPH_PDF_MODE')=='CAPTURED_REPLAY' and environment.get('CLOSEGRAPH_PDF_CAPTURE_DIR'):
-        return CapturedProvider(environment['CLOSEGRAPH_PDF_CAPTURE_DIR'])
+    mode=environment.get('CLOSEGRAPH_PDF_MODE')
+    if mode=='DISABLED':return None
+    if mode=='CAPTURED_REPLAY':
+        directory=environment.get('CLOSEGRAPH_PDF_CAPTURE_DIR')
+        if not directory:raise ValueError('Configure a PDF capture directory for replay')
+        return CapturedProvider(directory)
     endpoint=environment.get('CLOSEGRAPH_PDF_GATEWAY_URL')
     if not endpoint:return None
     gateway=GatewayProvider(endpoint,environment.get('CLOSEGRAPH_PDF_GATEWAY_TOKEN'))

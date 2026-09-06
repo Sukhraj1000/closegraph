@@ -1,6 +1,8 @@
-Current authorization: `docs/engineering/standing-authorization.md` supersedes the historical manual-approval, distinct-approver, branch-protection and final-user-signoff requirements below. Do not ask the user to authorize routine engineering work again. Historical adapter availability claims are not evidence of current runtime capability.
+# Historical Hermes reviewer cron draft
 
-CloseGraph independent reviewer cron draft, repository Sukhraj1000/closegraph ONLY. Workdir /Users/sukhrajkalon/projects/closegraph. Native cron polls GitHub; no custom listener/server or autonomous QA bot. User owns human integration/QA; hosted CI is deferred.
+> Retained for the paused legacy cron tooling; the instructions below describe that historical setup. [Standing engineering authorization](../../docs/engineering/standing-authorization.md) supersedes the manual approval, distinct approving account, branch-protection prerequisite and final user sign-off requirements below. Use [the Codex runner guide](../../docs/engineering/codex-runner.md) for the selected engineering workflow, [ARCHITECTURE.md](../../ARCHITECTURE.md) for the implemented product and [CI](../../.github/workflows/ci.yml) for current checks. Routine engineering needs no renewed approval. Financial approval rules remain separate, and historical adapter claims do not establish current runtime capability.
+
+CloseGraph independent reviewer cron draft, repository Sukhraj1000/closegraph ONLY. Workdir /Users/sukhrajkalon/projects/closegraph. Native cron polls GitHub; no custom listener/server or autonomous QA bot. User owns human integration/QA. This draft predates the hosted CI workflow linked above.
 
 FIRST run `python3.12 -m automation.cron_tools status` from the trusted base checkout. If dispatch_available is not true, stop with a concise blocked/paused status. No coding/model invocation, GitHub comments/reviews/merges, state-changing setup or new schedules. The current executable deliberately reports false. Never alter this gate or treat a new PR as permission to activate. No actionable change -> HEARTBEAT_OK.
 

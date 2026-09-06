@@ -1,6 +1,6 @@
-Current authorization: `docs/engineering/standing-authorization.md` supersedes the historical manual-approval, distinct-approver, branch-protection and final-user-signoff requirements below. Do not ask the user to authorize routine engineering work again. Historical adapter availability claims are not evidence of current runtime capability.
+# Historical paused cron setup and activation gates
 
-# Paused cron setup and activation gates
+> Historical record of the paused Hermes setup. The present-tense statements and gates below describe that earlier snapshot, not the current system. [Standing engineering authorization](standing-authorization.md) supersedes its manual approval, distinct approving account, branch-protection prerequisite and final user sign-off requirements. [The Codex runner guide](codex-runner.md) describes the selected engineering workflow and required runtime evidence; this notice does not assert live activation. [ARCHITECTURE.md](../../ARCHITECTURE.md) is the canonical implemented product map, and [CI](../../.github/workflows/ci.yml) defines the current repository checks. The historical body is retained for traceability.
 
 ## What exists
 
@@ -34,7 +34,7 @@ hermes cron list --all
 3. Configure a distinct eligible GitHub reviewer account/App. Two jobs/tokens for one author cannot approve that author's PR. Read back actual formal reviews.
 4. Establish task-specific test commands, isolated database state/roles/ports and browser runtime. Test failures cannot be hidden by generic smoke checks.
 5. Run one supervised task -> sandboxed change -> tests -> PR -> independent review -> repair/re-review pilot. Track exact head AND base. Only then replace the intentional `dispatch_available=false` gate with verified readiness and obtain explicit user approval to resume.
-6. Separately resolve GitHub protected-branch access, configure and read back review/stale-dismissal/conversation rules, verify serial merging and a failing post-merge smoke stop before enabling auto-merge. No hosted CI setup is required now.
+6. Separately resolve GitHub protected-branch access, configure and read back review/stale-dismissal/conversation rules, verify serial merging and a failing post-merge smoke stop before enabling auto-merge. The current hosted CI checks repository changes but does not satisfy or activate these automation-specific gates.
 
 ## Confirmed protection blocker
 

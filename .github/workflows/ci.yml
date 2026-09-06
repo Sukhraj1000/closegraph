@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  specs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm run spec:check
+
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: closegraph_test
+          POSTGRES_PASSWORD: closegraph_test
+          POSTGRES_DB: closegraph_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U closegraph_test -d closegraph_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      # Disposable CI database only; no application or provider credentials.
+      CLOSEGRAPH_TEST_DATABASE_URL: postgresql+psycopg://closegraph_test:closegraph_test@127.0.0.1:5432/closegraph_test
+      DAGSTER_TELEMETRY_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - run: uv sync --locked --project apps/api
+      - name: Critical Python lint
+        # Full Ruff remains deferred until the existing backlog is green.
+        run: uv run --no-sync --project apps/api ruff check --select E9,F63,F7,F82 apps/api/src apps/api/tests automation scripts
+      - name: Non-live API tests with real PostgreSQL
+        run: uv run --no-sync --project apps/api pytest apps/api/tests --ignore=apps/api/tests/live -q -ra
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/web
+        shell: bash
+    env:
+      CI: 'true'
+      STORYBOOK_DISABLE_TELEMETRY: '1'
+      CLOSEGRAPH_UI_URL: http://127.0.0.1:24173
+      CLOSEGRAPH_STORYBOOK_URL: http://127.0.0.1:24174
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm run build-storybook
+      - run: npx --no-install playwright install --with-deps chromium
+      - name: Storybook and login animation browser checks only
+        run: |
+          set -euo pipefail
+          server_pids=()
+          cleanup() {
+            for pid in "${server_pids[@]}"; do
+              kill -TERM -- "-$pid" 2>/dev/null || true
+            done
+            for pid in "${server_pids[@]}"; do
+              wait "$pid" 2>/dev/null || true
+            done
+          }
+          trap cleanup EXIT
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+
+          # Own process groups so Vite's children are also stopped on failure/cancellation.
+          setsid node node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 24173 --strictPort > vite-ci.log 2>&1 &
+          server_pids+=("$!")
+          setsid python3 -m http.server 24174 --bind 127.0.0.1 --directory storybook-static > storybook-ci.log 2>&1 &
+          server_pids+=("$!")
+
+          wait_for() {
+            local url="$1"
+            for attempt in {1..60}; do
+              for pid in "${server_pids[@]}"; do
+                if ! kill -0 "$pid" 2>/dev/null; then
+                  cat vite-ci.log storybook-ci.log
+                  return 1
+                fi
+              done
+              if curl --fail --silent --show-error --connect-timeout 1 --max-time 2 "$url" > /dev/null; then
+                return 0
+              fi
+              sleep 1
+            done
+            echo "Server readiness timed out: $url" >&2
+            cat vite-ci.log storybook-ci.log
+            return 1
+          }
+          wait_for "$CLOSEGRAPH_UI_URL/"
+          wait_for "$CLOSEGRAPH_STORYBOOK_URL/index.json"
+          npx --no-install playwright test --project=stories --project=batman
+
+  automation:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+      - name: Select the sandbox-readable developer tools
+        run: |
+          sudo xcode-select --switch /Library/Developer/CommandLineTools
+          test "$(xcode-select --print-path)" = "/Library/Developer/CommandLineTools"
+          /usr/bin/git --version
+      - name: Install the sandbox-readable Python toolchain
+        # Seatbelt permits the active distribution under uv's normal user path.
+        # setup-uv otherwise relocates it to an untrusted runner temp directory.
+        run: |
+          export UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"
+          printf 'UV_PYTHON_INSTALL_DIR=%s\n' "$UV_PYTHON_INSTALL_DIR" >> "$GITHUB_ENV"
+          uv python install 3.12
+      - run: uv run --no-project --managed-python --python 3.12 python -m unittest discover -s automation/tests -v
+      - run: uv run --no-project --managed-python --python 3.12 python scripts/local_runtime.py self-test
+      - run: node --test scripts/demo.test.mjs

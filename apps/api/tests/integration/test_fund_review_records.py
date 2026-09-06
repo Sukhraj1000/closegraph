@@ -60,12 +60,52 @@ def test_all_63_affected_rows_are_paginated_and_exported_without_losing_duplicat
     rows = list(csv.reader(StringIO(content.decode('utf-8-sig'))))
     assert len(rows) == 64 and len(set(rows[0])) == len(rows[0])
     assert len(rows[1]) == len(rows[0])
-    amount = rows[0].index('Amount')
-    second_amount = rows[0].index('Amount (2)')
+    amount = rows[0].index('Amount — Effective value')
+    second_amount = rows[0].index('Amount — Effective value (2)')
     assert rows[1][amount] == "'=1+1"
     assert rows[2][amount].startswith("'\t=")
     assert rows[-1][second_amount] == 'second-62'
     assert all(row[0] == 'activity.csv' and row[4] == 'Difference' for row in rows[1:])
+
+
+def test_corrected_finding_records_and_csv_keep_originals_and_column_provenance(request):
+    record_service = request.getfixturevalue('service')
+    state, item = many_records(record_service)
+    evidence = item['evidence'][0]
+    dataset_id, row_id = evidence['dataset_id'], evidence['row_id']
+    for column, value, reason in [('c1', 'first-correction', 'First identifier correction'),
+                                  ('c1', 'still-missing', 'Latest identifier correction'),
+                                  ('c2', '42.00', '=Checked the amount against its source')]:
+        state = record_service.edit(state['id'], 'preparer', state['version'], dataset_id,
+                             [{'op': 'set_cell', 'row_id': row_id, 'column_key': column, 'value': value}], reason)
+        state = run_pending(record_service, state['id'])
+    findings = record_service.fund_review_results(state['id'], 'preparer', status='difference')['findings']
+    item = next(f for f in findings if f['observed'] == ['still-missing'])
+    evidence = item['evidence'][0]
+    assert evidence['raw_value'] == evidence['effective_value'] == 'still-missing'
+    assert evidence['original_value_available'] and evidence['original_raw_value'] == 'missing'
+    assert evidence['correction'] == {'actor_id': 'preparer', 'reason': 'Latest identifier correction'}
+    page = record_service.fund_review_records(state['id'], 'reviewer', item['id'], 0, 1)
+    assert page['complete'] and page['total'] == 1
+    record = page['records'][0]
+    assert record['values'] == {'c1': 'still-missing', 'c2': '42.00', 'c3': 'second-0'}
+    assert record['original_values'] == {'c1': 'missing', 'c2': '=1+1', 'c3': 'second-0'}
+    assert record['corrections'] == {
+        'c1': evidence['correction'],
+        'c2': {'actor_id': 'preparer', 'reason': '=Checked the amount against its source'},
+    }
+    assert not {'metadata', 'source_rows', 'human_operation', 'lineage'} & record.keys()
+    content, _, _ = record_service.fund_review_records_download(state['id'], 'reviewer', item['id'])
+    exported = list(csv.DictReader(StringIO(content.decode('utf-8-sig'))))
+    assert len(exported) == 1
+    assert exported[0]['Investor ID — Effective value'] == 'still-missing'
+    assert exported[0]['Investor ID — Original extracted value'] == 'missing'
+    assert exported[0]['Investor ID — Correction actor'] == 'preparer'
+    assert exported[0]['Investor ID — Correction reason'] == 'Latest identifier correction'
+    assert exported[0]['Amount — Effective value'] == '42.00'
+    assert exported[0]['Amount — Original extracted value'] == "'=1+1"
+    assert exported[0]['Amount — Correction reason'] == "'=Checked the amount against its source"
+    assert exported[0]['Amount — Correction actor (2)'] == ''
 
 
 def test_finding_record_access_is_internal_scoped_and_stale_results_require_rerun(service):

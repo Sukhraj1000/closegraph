@@ -275,6 +275,13 @@ class FundReviewMixin:
             return [FundReviewMixin._public_fund_records(item) for item in value]
         if isinstance(value, dict):
             result = {k: FundReviewMixin._public_fund_records(v) for k, v in value.items() if k != '_record_refs'}
+            if 'raw_value' in value and 'dataset_id' in value and 'row_id' in value:
+                # Older immutable findings stored only the effective value. Do
+                # not infer their original or correction from a newer snapshot.
+                result.setdefault('effective_value', value['raw_value'])
+                result.setdefault('original_raw_value', None)
+                result.setdefault('original_value_available', False)
+                result.setdefault('correction', None)
             if 'match_key' in value and 'status' in value and 'evidence' in value:
                 result['records_complete'] = '_record_refs' in value and value.get('records_complete') is True
                 result.setdefault('records_total', max(value.get('affected_count', 0), value.get('evidence_total', len(value['evidence']))))
@@ -315,7 +322,7 @@ class FundReviewMixin:
         return result, finding, refs, complete, total
 
     def _fund_record_rows(self, state, result, refs):
-        from .fund_review import _evidence
+        from .fund_review import _cell_provenance, _evidence
         source_ids = {source['id'] for source in result.get('source_versions', [])}
         sources = {source['id']: source for source in current_sources(state) if source['id'] in source_ids}
         datasets = {d['id']: d for d in state['datasets'] if d.get('source_id') in sources and d['kind'] == 'extraction'}
@@ -336,8 +343,13 @@ class FundReviewMixin:
             source = sources[dataset['source_id']]
             envelope = {**table, 'dataset_id': dataset['id'], 'source_id': source['id'], 'document_id': source['document_id']}
             record = _evidence(envelope, row, ref.get('column_key'))
-            record.update(source_name=source['filename'], columns=profiles.get(dataset['id'], {}).get('columns', dataset['columns']),
-                          values=row.get('values', {}))
+            columns = profiles.get(dataset['id'], {}).get('columns', dataset['columns'])
+            provenance = {column['key']: _cell_provenance(row, column['key']) for column in columns}
+            record.update(source_name=source['filename'], columns=columns, values=row.get('values', {}),
+                          original_values={key: cell['original_raw_value'] for key, cell in provenance.items()
+                                           if cell['original_value_available']},
+                          corrections={key: cell['correction'] for key, cell in provenance.items()
+                                       if cell['correction'] is not None})
             records.append(record)
         return records
 
@@ -384,13 +396,16 @@ class FundReviewMixin:
                     label = str(column.get('label') or column['key'])
                     if multiple_tables:
                         label = f'{record["source_name"]} / {record.get("table_title", "Table")} / {label}'
-                    base, suffix = label, 1
-                    while label in used_labels:
-                        suffix += 1
-                        label = f'{base} ({suffix})'
-                    used_labels.add(label)
-                    fields.append(key)
-                    labels.append(label)
+                    for field, heading in (('values', 'Effective value'), ('original_values', 'Original extracted value'),
+                                           ('actor_id', 'Correction actor'), ('reason', 'Correction reason')):
+                        base = f'{label} — {heading}'
+                        heading, suffix = base, 1
+                        while heading in used_labels:
+                            suffix += 1
+                            heading = f'{base} ({suffix})'
+                        used_labels.add(heading)
+                        fields.append((*key, field))
+                        labels.append(heading)
             stream = StringIO(newline='')
             writer = csv.writer(stream, lineterminator='\r\n')
             def safe(value):
@@ -401,7 +416,16 @@ class FundReviewMixin:
             for record in records:
                 values = [record['source_name'], record.get('table_title', ''), self._fund_record_location(record),
                           finding['title'], {'difference': 'Difference', 'needs_input': 'Needs your input', 'passed': 'Selected check passed'}[finding['status']]]
-                values += [record['values'].get(key) if dataset == record['dataset_id'] else None for dataset, key in fields]
+                for dataset, key, field in fields:
+                    value = None
+                    if dataset == record['dataset_id']:
+                        if field == 'original_values':
+                            value = record[field].get(key, '[unavailable]')
+                        elif field == 'values':
+                            value = record[field].get(key)
+                        else:
+                            value = record['corrections'].get(key, {}).get(field)
+                    values.append(value)
                 writer.writerow([safe(value) for value in values])
             content = stream.getvalue().encode('utf-8-sig')
             self._revision(session, row, state, actor, 'fund_review_records_downloaded',
@@ -489,6 +513,12 @@ class FundReviewMixin:
 
     def _fund_review_gate(self, state):
         result = self._current_fund_result(state)
+        current_ids = {source['id'] for source in current_sources(state)}
+        historical_ids = {source['id'] for source in state['sources']} - current_ids
+        if any(issue.get('severity') == 'error' and not issue.get('resolved')
+               and issue.get('stage') in (None, 'extraction')
+               and issue.get('source_id') not in historical_ids for issue in state['issues']):
+            raise DomainConflict('Resolve extraction errors before approving this review scope')
         checks = state['fund_review'].get('config', {}).get('checks', [])
         if not checks or any(c.get('confirmed') is not True for c in checks):
             raise DomainConflict('Confirm the intended review checks before approving the brief')
@@ -523,6 +553,7 @@ class FundReviewMixin:
 
     def fund_review_download(self, identity, actor, reviewed=False):
         with self._locked(identity, actor, 'release') as (session, row, state):
+            self._idle(state)
             result = self._current_fund_result(state)
             review = state['fund_review']
             if reviewed:
@@ -530,6 +561,7 @@ class FundReviewMixin:
                 approval = review.get('review', {})
                 if approval.get('decision') != 'APPROVE' or approval.get('fingerprint') != review['fingerprint'] or approval.get('result_hash') != review['result_hash']:
                     raise DomainConflict('Independent approval of this exact review brief is required')
+                self._check_approval_authority(state, approval)
             def text(value):
                 return escape('' if value is None else str(value))
             status_label = 'Reviewed for the selected checks' if reviewed else 'Working review — unresolved findings may remain'

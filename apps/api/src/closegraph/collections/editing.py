@@ -42,6 +42,9 @@ def apply_edits(table, edits, issues, reason, actor, *, related_tables=None):
         op=edit.get('op');detail=deepcopy(edit)
         if op=='set_cell':
             target=row(edit.get('row_id'));column=key(edit);target.setdefault('raw_values',deepcopy(target['values']))
+            operation=target.get('human_operation',{});inherited_count=operation.get('inherited_correction_count')
+            if operation.get('op')=='split_row' and (type(inherited_count) is not int or not 0<=inherited_count<=len(target.get('corrections',[]))):
+                operation['inherited_correction_count']=len(target.get('corrections',[]))
             detail['previous']=target['values'].get(column);target['values'][column]=text(edit.get('value'))
             target.setdefault('corrections',[]).append({'column_key':column,'previous':detail['previous'],'value':edit.get('value'),'actor_id':actor,'reason':reason})
         elif op=='rename_column':
@@ -65,7 +68,10 @@ def apply_edits(table, edits, issues, reason, actor, *, related_tables=None):
                 created=deepcopy(target);created['row_id']=target['row_id']+'-split-'+uuid4().hex[:12]
                 created['raw_values']=deepcopy(target.get('raw_values',target['values']));created['values']={k:text(value.get(k)) for k in columns}
                 created['lineage']={column:_lineage(table,target,column) for column in columns}
-                created['source_row_ids']=[target['row_id']];created['human_operation']={'op':op,'actor_id':actor,'reason':reason};new.append(created)
+                created['source_row_ids']=[target['row_id']]
+                created['human_operation']={'op':op,'actor_id':actor,'reason':reason,
+                                            'inherited_correction_count':len(created.get('corrections',[]))}
+                new.append(created)
             position=table['rows'].index(target);table['rows'][position:position+1]=new;detail['new_row_ids']=[r['row_id'] for r in new]
         elif op=='merge_rows':
             identities=edit.get('row_ids')
