@@ -12,7 +12,9 @@
     "spec:list": "OPENSPEC_TELEMETRY=0 openspec list",
     "spec:check": "npm run spec:validate && npm run spec:status",
     "loop:test": "python3.12 -m unittest discover -s automation/tests -v",
-    "loop:status": "python3.12 -m automation.cron_tools status"
+    "loop:status": "python3.12 -m automation.cron_tools status",
+    "demo": "node scripts/demo.mjs",
+    "demo:accounts": "node scripts/demo.mjs --accounts"
   },
   "devDependencies": {
     "@fission-ai/openspec": "1.10.0"
