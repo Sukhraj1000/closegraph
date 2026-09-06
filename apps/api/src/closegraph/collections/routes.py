@@ -103,6 +103,11 @@ def collection_router(auth,services):
         if services is None:raise DomainUnavailable()
         try:return getattr(services,name)(*args,**kwargs)
         except ValueError as exc:raise HTTPException(422,str(exc)[:1000]) from exc
+        except OSError as exc:
+            import errno
+            if exc.errno in (errno.ENOSPC, errno.EDQUOT):
+                raise HTTPException(507,"Storage is full. Free disk space on the app's computer, then retry this action. Existing saved evidence is retained.") from exc
+            raise
     @router.get('')
     def listing(actor=Depends(user)):return call('list',actor)
     @router.post('',status_code=201)

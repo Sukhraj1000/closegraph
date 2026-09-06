@@ -523,7 +523,7 @@ def analyze(envelopes, config=None):
     if not checks:
         findings.append(_finding({'id': 'check_scope', 'kind': 'configuration'}, [], 'no_checks', 'needs_input',
             'Choose what this review should check',
-            'Your documents have been profiled. Confirm a suggested check or choose the fields and totals that matter; extraction alone does not verify the figures.'))
+            'Once the documents are readable, confirm a suggested check or choose the fields and totals that matter; extraction alone does not verify the figures.'))
     counts = Counter(finding['status'] for finding in findings)
     configured_findings = [finding for finding in findings if finding['kind'] not in {'coverage', 'configuration', 'formula_scope'}]
     return {'tables': list(profiles.values()), 'suggestions': _suggestions(envelopes, profiles, checks),
