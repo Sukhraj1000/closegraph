@@ -144,10 +144,46 @@ def _profile(table, config):
     }
 
 
+def _cell_provenance(row, column):
+    """Project only source values and the last still-effective column correction."""
+    value = row.get('values', {}).get(column)
+    corrections = row.get('corrections', [])
+    operation = row.get('human_operation', {})
+    if operation.get('op') == 'split_row':
+        # A split explicitly replaces every cell. Corrections copied from its
+        # parent are historical, even when a replacement happens to match.
+        inherited_count = operation.get('inherited_correction_count')
+        corrections = (corrections[inherited_count:] if isinstance(inherited_count, int)
+                       and 0 <= inherited_count <= len(corrections) else [])
+    elif row.get('source_rows'):
+        # Merge copies the first contributing row's history. That history does
+        # not establish a correction of the merged cell; later direct edits do.
+        inherited = row['source_rows'][0].get('corrections', [])
+        corrections = corrections[len(inherited):] if corrections[:len(inherited)] == inherited else []
+    latest = next((entry for entry in reversed(corrections)
+                   if entry.get('column_key') == column), None)
+    originals = row.get('raw_values')
+    if originals is None:
+        # An unedited extracted cell is its own original. Do not make that
+        # assumption for corrections or rows created through split/merge lineage.
+        originals = (row.get('values', {}) if latest is None and not any(
+            row.get(key) for key in ('lineage', 'source_row_ids', 'source_rows', 'human_operation')) else {})
+    correction = None
+    # A split can inherit a correction that no longer describes its value. Only
+    # inspect the latest entry for this column; an older equal value is not proof.
+    if latest and 'value' in latest and latest['value'] == value and latest.get('actor_id'):
+        correction = {key: latest.get(key) for key in ('actor_id', 'reason')}
+    return {'original_raw_value': originals.get(column),
+            'original_value_available': column in originals, 'correction': correction}
+
+
 def _evidence(table, row, column):
+    value = row.get('values', {}).get(column)
     return {'dataset_id': _identity(table), 'source_id': table.get('source_id'), 'document_id': table.get('document_id'),
             'row_id': row['row_id'], 'column': column, 'column_key': column,
-            'raw_value': row.get('values', {}).get(column), 'locator': row.get('locators', {}).get(column),
+            # raw_value is a legacy alias for the effective value, not the source original.
+            'raw_value': value, 'effective_value': value, **_cell_provenance(row, column),
+            'locator': row.get('locators', {}).get(column),
             'table_title': table.get('title')}
 
 
