@@ -303,7 +303,7 @@ class CollaborationMixin:
             if any(n['id']==key for n in state['notifications']):continue
             state['notifications'].append({'id':key,'recipient_actor_id':recipient,'event':event,
                 'title':'Output ready for review' if event=='review_requested' else 'Output review completed',
-                'message':'Review the changes, evidence and checks.' if event=='review_requested' else 'The independent reviewer has recorded a decision.',
+                'message':'Review the changes, evidence and checks.' if event=='review_requested' else 'The independent account manager has recorded a decision.',
                 'created_at':timestamp(),'delivery':'in_app','read_at':None})
 
     def review_comparison(self,identity,actor,expected,comparison_id,reason):

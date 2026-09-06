@@ -1,3 +1,4 @@
+import {actorLabel} from '../../lib/roles';
 import { Badge, Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '../ui';
 import { humanize, type Check, type PackSnapshot } from '../../lib/model';
 export function CheckBadge({status}:{status:Check['status']}) {
@@ -15,7 +16,7 @@ export function History({pack}:{pack:PackSnapshot}) {
  return <Accordion type="multiple" className="accordion"><AccordionItem value="history"><AccordionTrigger>Version and review history</AccordionTrigger><AccordionContent className="accordion-body">{pack.history.length===0?<p>No events recorded yet.</p>:[...pack.history].reverse().map((entry,i)=>{
  const note=entry.note ?? entry.reason;
  const at=entry.timestamp ?? entry.at;
- const actor=typeof entry.actor==='string'?entry.actor:entry.actor?JSON.stringify(entry.actor):'';
+ const actor=typeof entry.actor==='string'?actorLabel(entry.actor):entry.actor?actorLabel(String((entry.actor as Record<string,unknown>).actor_id??'Team member')):'';
  return <div className="record" key={i}><strong>{entry.version ? 'Version '+entry.version+' · ' : ''}{entry.title ?? humanize(entry.action ?? 'Recorded event')}</strong>{note!=null&&<p>{String(note)}</p>}{entry.before!=null&&entry.after!=null&&<p>Changed from {String(entry.before)} to {String(entry.after)}.</p>}{actor&&<p>{actor}</p>}{at!=null&&<time dateTime={String(at)}>{String(at)}</time>}{entry.execution_status!=null&&<p>Processing: {humanize(String(entry.execution_status))}</p>}{entry.routing_status!=null&&<p>Review routing: {humanize(String(entry.routing_status))}</p>}{entry.checks && <Accordion type="multiple"><AccordionItem value={'checks-'+i}><AccordionTrigger>Check results saved with this version</AccordionTrigger><AccordionContent className="accordion-body"><CheckList checks={entry.checks}/></AccordionContent></AccordionItem></Accordion>}</div>;
  })}</AccordionContent></AccordionItem></Accordion>;
 }

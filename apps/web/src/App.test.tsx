@@ -27,10 +27,11 @@ describe('fund review entry and identity',()=>{
  });
 });
 
-it('offers business accounts without granting a session by choosing a role',async()=>{
- const user=userEvent.setup();vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response('{}',{status:401}));
+it('requires individual credentials without an account or role chooser',async()=>{
+ vi.spyOn(globalThis,'fetch').mockResolvedValue(new Response('{}',{status:401}));
  render(<App/>);await screen.findByRole('heading',{name:'Sign in to CloseGraph'});
- for(const name of ['Accountant','Account manager','Fund manager','Investor'])expect(screen.getByRole('button',{name})).toBeVisible();
- await user.click(screen.getByRole('button',{name:'Account manager'}));expect(screen.getByLabelText('Username')).toHaveValue('account_manager');
- expect(screen.getByLabelText('Password')).toHaveValue('');expect(screen.queryByRole('navigation',{name:'Main navigation'})).not.toBeInTheDocument();
+ expect(screen.getByLabelText('Username')).toHaveValue('');
+ expect(screen.getByLabelText('Password')).toHaveValue('');
+ expect(screen.queryByRole('group')).not.toBeInTheDocument();
+ for(const name of ['Accountant','Account manager','Fund manager','Investor'])expect(screen.queryByRole('button',{name})).not.toBeInTheDocument();
 });

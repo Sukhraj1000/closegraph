@@ -1,13 +1,14 @@
 """Approval records bind a candidate; they never modify financial checks."""
 from copy import deepcopy
+from closegraph.collections.presentation import canonical_actor
 from closegraph.outputs.manifest import snapshot_digest
 from .errors import DomainError
 
 
 def independent(state, actor):
     preparers = set(state.get("contributors", [])) | {state.get("prepared_by")}
-    if actor in preparers:
-        raise DomainError("Independent reviewer required")
+    if canonical_actor(actor) in {canonical_actor(person) for person in preparers}:
+        raise DomainError("Independent account manager required")
 
 
 def make_approval(state, *, actor, note, attested, at, adjudication=None):
