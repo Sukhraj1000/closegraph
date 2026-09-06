@@ -1,0 +1,43 @@
+# Repository-root CLI uploads contain only the synthetic Storybook build inputs.
+# Backend, automation, docs/evidence, private data and runtime directories stay out.
+/*
+!/vercel.json
+!/apps/
+/apps/*
+!/apps/web/
+/apps/web/*
+!/apps/web/package.json
+!/apps/web/package-lock.json
+!/apps/web/.storybook/
+!/apps/web/src/
+!/apps/web/public/
+!/apps/web/vite.config.ts
+!/apps/web/tsconfig*.json
+
+# Keep the original-page PDF used by the Storybook citation example.
+/apps/web/src/test/*
+!/apps/web/src/test/fixtures/
+/apps/web/src/test/fixtures/*
+!/apps/web/src/test/fixtures/cited-original.pdf
+**/*.test.ts
+**/*.test.tsx
+
+# Also exclude local material if it appears inside an allowed source directory.
+**/.env
+**/.env.*
+**/.local/
+**/private-data/
+**/artifacts/
+**/node_modules/
+**/.venv/
+**/__pycache__/
+**/.cache/
+**/.vercel/
+**/dist/
+**/storybook-static/
+**/coverage/
+**/test-results/
+**/playwright-report/
+**/*.log
+**/*.tsbuildinfo
+**/.DS_Store
