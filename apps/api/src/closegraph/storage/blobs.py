@@ -4,11 +4,13 @@ Scope is server-resolved by the caller. A hash is an identifier, not permission.
 Local filesystem ownership remains an installation responsibility.
 """
 import hashlib
+import errno
 import json
 import os
 import re
 import secrets
 import stat
+import shutil
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -76,6 +78,14 @@ class LocalBlobStore:
             raise ValueError("blob requires bytes within the configured limit")
         key = hashlib.sha256(data).hexdigest()
         with self._directory(scope, create=True) as directory:
+            # A retry of an immutable object needs no second on-disk copy.
+            try:
+                self._read(directory, key)
+                return key
+            except BlobNotFound:
+                pass
+            if shutil.disk_usage(self.root).free < len(data) + 64 * 1024 * 1024:
+                raise OSError(errno.ENOSPC, "Storage is full. Free disk space on the app's computer, then retry.")
             temp = ".upload-" + secrets.token_hex(16)
             fd = os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600, dir_fd=directory)
             try:

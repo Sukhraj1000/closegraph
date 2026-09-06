@@ -62,6 +62,8 @@ Lead with one useful question and one source record. Keep the accountant and acc
 - **Not delivered:** universal GL-to-loader conversion, arbitrary Excel recalculation, inferred LPA/fee/NAV rules, autonomous financial approval, live Excel collaboration, external notifications, production identity management or regulatory certification.
 - **Validation:** [the current demo acceptance](docs/verification/judge-demo-acceptance.md) records 106 web tests, the animated-browser check and the actual workbook rehearsal. No measured customer time saving, customer adoption or human usability acceptance is asserted.
 
+The [request and review usability verification](docs/verification/usability-quick-fixes.md) records the immediate inbox, replies, visible updates, readable extraction details, recent history and successful retry of the two real workbooks after storage recovery.
+
 Batman appears beside processing status and makes one brief visit per minute, rotating four animations. The small corner button pauses/resumes visits. Hidden tabs pause the schedule; reduced-motion settings keep the loader static and disable visits. It does not change processing results or represent progress.
 
 ## Product-track framing and submission

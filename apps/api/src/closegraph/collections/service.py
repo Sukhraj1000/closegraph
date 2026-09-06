@@ -213,7 +213,7 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
                 state['datasets']=[d for d in state['datasets'] if d.get('source_id')!=previous]
                 state['issues']=[i for i in state['issues'] if i.get('source_id')!=previous]
                 state['comparisons'].append({'id':uid('comparison'),'document_id':source['document_id'],'before_revision_id':previous,'after_revision_id':source_id,'status':'PENDING'})
-            if task_id:self._attach_task_evidence(state,actor,task_id,source)
+            if task_id:self._attach_task_evidence(state,actor,task_id,source,reason)
             if not preserve:self._invalidate(state,actor)
             state['status']='QUEUED'
             if idempotency_key:state['idempotency'][idempotency_key]={'actor_id':actor,'fingerprint':fingerprint,'source_id':source_id}
@@ -405,7 +405,12 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
                         state['datasets'].append({'id':table['table_id'],'table_id':table['table_id'],'source_id':source['id'],'title':table['title'],'columns':table['columns'],'metadata':table.get('metadata',{}),'row_count':len(table['rows']),'accepted':False,'version':1,'kind':'extraction','data_hash':data_hash,'original_hash':data_hash})
                     source['status']='FAILED' if any(i['severity']=='error' for i in newissues) and not tables else 'EXTRACTED'
                 except Exception as exc:
-                    source['status']='FAILED';state['issues'].append(issue('extraction_failed',str(exc)[:500],source_id=source['id'],stage='extraction'))
+                    import errno
+                    storage_full = isinstance(exc, OSError) and exc.errno in (errno.ENOSPC, errno.EDQUOT)
+                    failure = issue('storage_full' if storage_full else 'extraction_failed',
+                        "Storage is full. Free disk space on the app's computer, then retry processing. Your original file is retained." if storage_full else str(exc)[:500],
+                        source_id=source['id'], stage='extraction')
+                    source.update(status='FAILED', issues=[failure]);state['issues'].append(failure)
                 self._progress(job,state,'Reading documents')
             state['status']='BLOCKED' if any(i['severity']=='error' and not i.get('resolved') for i in state['issues']) else 'NEEDS_REVIEW'
         else:
@@ -473,13 +478,27 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
     def _finish(self,session,job,result,run_id):
         if job.status!='RUNNING' or job.dagster_run_id!=run_id:return {'applied':False}
         row=session.scalar(select(CollectionRow).where(CollectionRow.id==job.collection_id).with_for_update())
-        job.result={'data_hash':self._store(job.snapshot,result),'applied':row.version==job.version};job.status='FAILED' if result.get('execution_error') else 'COMPLETED';job.dagster_run_id=run_id
+        try:
+            receipt={'data_hash':self._store(job.snapshot,result)}
+        except OSError as exc:
+            import errno
+            if exc.errno not in (errno.ENOSPC, errno.EDQUOT):raise
+            # Keep the failed evaluation in the transactional database when a
+            # second immutable blob cannot be written. Never strand it RUNNING.
+            message="Storage is full. Free disk space on the app's computer, then retry processing. Existing saved evidence is retained."
+            if not result.get('execution_error'):
+                result['status']='BLOCKED'
+                result.setdefault('issues',[]).append(issue('storage_full',message,stage=job.kind))
+            receipt={'snapshot':deepcopy(result),'storage_error':message}
+        failed_sources=[s for s in result.get('sources',[]) if s.get('status')=='FAILED']
+        failed=bool(result.get('execution_error') or receipt.get('storage_error') or failed_sources)
+        job.result={**receipt,'applied':row.version==job.version};job.status='FAILED' if failed else 'COMPLETED';job.dagster_run_id=run_id
         if row.version!=job.version:return {'applied':False,'superseded':True}
         if result.get('execution_error'):
             state=deepcopy(row.state);state['status']='BLOCKED';state['issues'].append(issue('processing_failed',result['execution_error'],stage=job.kind))
         else:state=result
         from .workflow import sync_processing_error
-        sync_processing_error(state,result.get('execution_error'),now())
+        sync_processing_error(state,result.get('execution_error') or receipt.get('storage_error') or ([s['id'] for s in failed_sources] if failed_sources else None),now())
         state['processing']={'job_id':job.id,'run_id':run_id,'kind':job.kind,'status':job.status}
         self._revision(session,row,state,'system','processing_completed',{'job_id':job.id,'run_id':run_id,'status':job.status})
         return {'applied':True,'collection_id':row.id,'version':row.version,'status':state['status']}

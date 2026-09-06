@@ -38,3 +38,17 @@ def test_bounded_size_and_symlinks(tmp_path):
     target = tmp_path/"outside"; target.write_bytes(b"1234")
     path.symlink_to(target)
     with pytest.raises(BlobIntegrityError): store.read(S, digest)
+
+
+def test_full_disk_retry_reuses_existing_bytes_and_rejects_new_write(tmp_path, monkeypatch):
+    import errno
+    from types import SimpleNamespace
+    store = LocalBlobStore(tmp_path / 'blobs')
+    key = store.put(S, b'preserved original')
+    monkeypatch.setattr('closegraph.storage.blobs.shutil.disk_usage', lambda _: SimpleNamespace(free=0))
+    assert store.put(S, b'preserved original') == key
+    with pytest.raises(OSError) as error:
+        store.put(S, b'new content')
+    assert error.value.errno == errno.ENOSPC
+    assert store.read(S, key) == b'preserved original'
+    assert not list(tmp_path.rglob('.upload-*'))
