@@ -1,12 +1,14 @@
 # CloseGraph
 
-A local workspace for extracting varied source files, checking the evidence, applying explicit deterministic transformations, and releasing independently reviewed CSV/XLSX outputs.
+CloseGraph turns a private-fund reporting pack and supporting documents into a review brief: which selected checks pass, what needs clarification, and what changed after a correction. Original workbooks and formulas remain unchanged.
 
-## Collections
+Start with **New review**, **Recent work** and **Requests**. Upload the pack, confirm proposed checks using source previews, inspect findings, request evidence and compare revisions. See the [fund reporting review guide](docs/fund-reporting-review.md) and [technical acceptance](docs/verification/fund-review-acceptance.md).
 
-Start with **Overview, Documents, Tasks, Review changes and Outputs**. Edit workbooks in Excel, upload a new version against the existing document, compare saved changes, and route evidence requests to explicit owners. Account managers configure required checks and independently approve exact outputs. See [evidence-led collaboration](docs/engineering/evidence-collaboration.md).
+## Existing Collections infrastructure
 
-The default workspace accepts varied CSV/XLSX layouts and configured Reducto PDF extraction. Review source-linked tables, resolve errors, select headers and accept the exact input version. Reusable versioned recipes define mappings, joins, Decimal calculations, classification, allocation, reshaping and required checks. An independent reviewer inspects exact draft exports before those bytes can be released.
+The earlier Collections workspace provides **Overview, Documents, Tasks, Review changes and Outputs** behind the current guided review journey. Edit workbooks in Excel, upload a new version against the existing document, compare saved changes, and route evidence requests to explicit owners. Account managers configure required checks and independently approve exact outputs. See [evidence-led collaboration](docs/engineering/evidence-collaboration.md).
+
+The underlying collection services accept varied CSV/XLSX layouts and configured Reducto PDF extraction. Review source-linked tables, resolve errors, select headers and accept the exact input version. Reusable versioned recipes define mappings, joins, Decimal calculations, classification, allocation, reshaping and required checks. An independent reviewer inspects exact draft exports before those bytes can be released.
 
 See the [collection workflow and limits](docs/engineering/collections-workflow.md), [recipe reference](docs/engineering/collection-recipes.md), and [collection verification](docs/verification/collections-acceptance.md). PDF extraction is AI-assisted and requires review; confidence is not proof of correctness. Native spreadsheet extraction and transformations do not use an LLM. The direct collections implementation leaves OpenSpec unchanged, as requested.
 
