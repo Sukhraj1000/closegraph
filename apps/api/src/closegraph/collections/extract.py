@@ -219,7 +219,7 @@ def _csv_dialect(sample, filename, result):
             dialect = None
         dialects[delimiter] = dialect
         reader = csv.reader(io.StringIO(sample, newline=''), dialect=dialect or 'excel',
-                            delimiter=delimiter, strict=True)
+                            delimiter=delimiter, doublequote=True, strict=True)
         widths = []
         try:
             for row in reader:
@@ -271,7 +271,10 @@ def _csv(content, result, filename):
     delimiter, dialect = _csv_dialect(sample, filename, result)
     table = result.table(filename, 'csv', encoding=encoding, delimiter=delimiter, header_consumed=False)
     stream = io.TextIOWrapper(io.BytesIO(content), encoding=encoding, newline='')
-    reader = csv.reader(stream, dialect=dialect or 'excel', delimiter=delimiter, strict=True)
+    # Sniffer reports doublequote=False when its bounded sample contains no
+    # escaped quotes. Later records still use the ordinary CSV doubled-quote
+    # grammar; disabling it silently changes quoted narratives and field widths.
+    reader = csv.reader(stream, dialect=dialect or 'excel', delimiter=delimiter, doublequote=True, strict=True)
     widths, records = set(), 0
     try:
         for record_number, values in enumerate(reader, 1):
@@ -298,8 +301,9 @@ def _csv(content, result, filename):
     if len(widths) > 1:
         result.report('ragged_rows', 'Records have different column counts; no values were shifted or discarded.',
                       table_id=table['table_id'], details={'widths': sorted(widths)})
-    return result.finish({'name': 'csv', 'version': 'native-v1', 'mode': 'NATIVE',
-                          'settings': {'encoding': encoding, 'delimiter': delimiter}}, source_records_seen=records)
+    return result.finish({'name': 'csv', 'version': 'native-v2', 'mode': 'NATIVE',
+                          'settings': {'encoding': encoding, 'delimiter': delimiter, 'doublequote': True,
+                                       'quotechar': getattr(dialect, 'quotechar', '"')}}, source_records_seen=records)
 
 
 def _xlsx(content, result):
