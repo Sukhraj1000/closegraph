@@ -127,8 +127,6 @@ def _profile(table, config):
     coverage = table.get('coverage', {})
     if coverage.get('complete') is not True:
         issues.append('Some source content is missing or extraction coverage has not been confirmed.')
-    if formula_unverified:
-        issues.append(f'{formula_unverified:,} formula results have not been independently checked.')
     pdf_confirmed = table.get('extraction_confirmed') or table.get('source_id') in config.get('confirmed_source_ids', [])
     if table.get('media_type') == 'application/pdf' and not pdf_confirmed:
         issues.append('Check extracted PDF values against the original before confirming a result.')
@@ -140,7 +138,8 @@ def _profile(table, config):
         'columns': [{'key': key, 'label': _text(labels.get(key)) or _text(value),
                      'concept': _concept(labels.get(key, value), table.get('title', ''))} for key, value in native.items()],
         'preview': [{'row_id': row['row_id'], 'values': dict(row.get('values', {})), 'locators': row.get('locators', {})} for row in data[:5]],
-        'issues': issues, 'coverage': dict(coverage), 'formula_count': formula_count,
+        'issues': issues, 'warnings': [f'{formula_unverified:,} formula results have not been independently checked.'] if formula_unverified else [],
+        'coverage': dict(coverage), 'formula_count': formula_count,
         'formula_unverified': formula_unverified, 'parser_mode': table.get('parser', {}).get('mode'),
     }
 
@@ -152,14 +151,26 @@ def _evidence(table, row, column):
             'table_title': table.get('title')}
 
 
-def _finding(check, tables, key, status, title, explanation, count=0, evidence=None, **details):
+def _records(table, rows, column):
+    return [{'dataset_id': _identity(table), 'row_id': row['row_id'], 'column_key': column} for row in rows]
+
+
+def _finding(check, tables, key, status, title, explanation, count=0, evidence=None, records=None, **details):
     stable = [check.get('id'), check.get('kind'), [_stable_table(table) for table in tables], key]
     match_key = _hash(stable)
     evidence = evidence or []
+    total = details.pop('evidence_total', len(evidence))
+    complete = records is not None or total == len(evidence) and count <= len(evidence)
+    refs = records if records is not None else [
+        {k: e.get(k) for k in ('dataset_id', 'row_id', 'column_key')} for e in evidence if e.get('dataset_id') and e.get('row_id')]
+    # Duplicate financial values remain separate records. Only repeated citations
+    # to the exact same physical source row share one full-row entry.
+    refs = list({(r['dataset_id'], r['row_id']): r for r in refs}.values())
     return {'id': 'fund-finding-' + match_key, 'match_key': match_key, 'check_id': check.get('id'),
             'kind': check.get('kind', 'coverage'), 'status': status, 'title': title, 'explanation': explanation,
             'affected_count': count, 'evidence': evidence[:MAX_EVIDENCE],
-            'evidence_total': details.pop('evidence_total', len(evidence)), **details}
+            'evidence_total': total, '_record_refs': refs, 'records_complete': complete,
+            'records_total': len(refs) if complete else max(count, total), 'blocking': True, **details}
 
 
 def _selection(side, tables, profiles, config):
@@ -188,6 +199,9 @@ def _selection(side, tables, profiles, config):
         raise ValueError('Confirm the PDF extraction against the original before checking these values.')
     selected = []
     header_values = rows[index].get('values', {}) if index >= 0 else None
+    if index >= 0 and any(rows[index].get('metadata', {}).get('cells', {}).get(column, {}).get('formula')
+                          and not rows[index]['metadata']['cells'][column]['formula'].get('cache_verified') for column in columns + groups):
+        raise ValueError('A selected header formula has not been independently verified. Confirm its meaning before checking.')
     for row in rows[index + 1:]:
         if row.get('excluded'):
             if not row.get('exclusion_reason') and not row.get('reason'):
@@ -255,6 +269,7 @@ def _run(check, tables, profiles, config):
                     findings.append(_finding(check, selected_tables, ['missing', column], 'difference', title,
                         f'{len(missing):,} records are missing a value required by this check.', len(missing),
                         [_evidence(left, row, column) for row in missing[:MAX_EVIDENCE]], evidence_total=len(missing),
+                        records=_records(left, missing, column),
                         expected='A value in every selected record', observed=f'{len(missing)} blank values',
                         operands={'column': column, 'evaluated_rows': len(lrows)}))
         elif kind == 'unique':
@@ -267,6 +282,7 @@ def _run(check, tables, profiles, config):
                     findings.append(_finding(check, selected_tables, ['unique', value], 'difference', title,
                         'The selected business key is blank.' if missing else f'This business key occurs in {len(rows):,} records. No duplicate has been silently chosen.',
                         len(rows), [_evidence(left, row, lcols[0]) for row in rows[:MAX_EVIDENCE]], evidence_total=len(rows),
+                        records=_records(left, rows, lcols[0]),
                         expected='One nonblank record per selected key', observed=list(value),
                         operands={'key_columns': lcols, 'occurrences': len(rows)}))
         elif kind == 'reference':
@@ -282,6 +298,8 @@ def _run(check, tables, profiles, config):
                 return [_finding(check, selected_tables, 'ambiguous_reference', 'needs_input', title,
                     f'{len(ambiguous):,} reference keys occur more than once. Confirm the correct reference scope before checking membership.',
                     sum(len(reference[key]) for key in ambiguous), [_evidence(right, row, rcols[0]) for row in rows[:MAX_EVIDENCE]],
+                    records=_records(right, [row for key in ambiguous for row in reference[key]], rcols[0]),
+                    evidence_total=sum(len(reference[key]) for key in ambiguous),
                     expected='A unique, nonblank reference key', observed=f'{len(ambiguous)} duplicate keys')]
             unmatched = defaultdict(list)
             for row in lrows:
@@ -292,6 +310,7 @@ def _run(check, tables, profiles, config):
                 findings.append(_finding(check, selected_tables, ['reference', value], 'difference', title,
                     'A required reference value is blank.' if not all(value) else 'This value is absent from the reference list you selected. Confirm or correct the mapping; this alone does not establish an accounting error.',
                     len(rows), [_evidence(left, row, lcols[0]) for row in rows[:MAX_EVIDENCE]], evidence_total=len(rows),
+                    records=_records(left, rows, lcols[0]),
                     expected='Present in the selected reference list', observed=list(value),
                     operands={'source_column': lcols[0], 'reference_column': rcols[0], 'reference_rows': len(rrows), 'scope_columns': lgroups}))
         elif kind == 'totals':
@@ -325,6 +344,8 @@ def _run(check, tables, profiles, config):
                     findings.append(_finding(check, selected_tables, ['totals', value], 'passed', title,
                         'The selected group totals agree within the configured tolerance. This does not prove individual records or accounting treatment.',
                         0, [_evidence(left, lgroup['rows'][0], lcols[0]), _evidence(right, rgroup['rows'][0], rcols[0])],
+                        records=_records(left, lgroup['rows'], lcols[0]) + _records(right, rgroup['rows'], rcols[0]),
+                        evidence_total=len(lgroup['rows']) + len(rgroup['rows']),
                         expected=str(expected), observed=str(observed), difference=str(difference),
                         operands={'group': list(value), 'left_rows': len(lgroup['rows']), 'right_rows': len(rgroup['rows']),
                                   'tolerance': str(tolerance), 'left_group_columns': lgroups, 'right_group_columns': rgroups}))
@@ -335,6 +356,7 @@ def _run(check, tables, profiles, config):
                     findings.append(_finding(check, selected_tables, ['totals', value], 'difference', title,
                         'This group is missing from one selected table.' if difference is None else 'The selected group totals differ beyond the explicitly configured tolerance.',
                         affected, le + revidence, evidence_total=affected,
+                        records=_records(left, (lgroup or {}).get('rows', []), lcols[0]) + _records(right, (rgroup or {}).get('rows', []), rcols[0]),
                         expected=None if expected is None else str(expected), observed=None if observed is None else str(observed),
                         difference=None if difference is None else str(difference),
                         operands={'group': list(value), 'left_rows': len((lgroup or {}).get('rows', [])),
@@ -345,6 +367,8 @@ def _run(check, tables, profiles, config):
                 ('The selected group totals agree. Matching totals do not prove individual records or accounting treatment.' if kind == 'totals'
                  else 'The explicitly selected check passes for these source versions. Other financial rules have not been inferred.'),
                 0, [_evidence(left, lrows[0], lcols[0])],
+                records=_records(left, lrows, lcols[0]) + (_records(right, rrows, rcols[0]) if right else []),
+                evidence_total=len(lrows) + len(rrows),
                 expected='Selected check satisfied', observed='Passed',
                 operands={'left_rows': len(lrows), 'right_rows': len(rrows), 'left_columns': lcols, 'right_columns': rcols})]
         return findings
@@ -405,6 +429,32 @@ def _suggestions(envelopes, profiles, configured):
     return proposals[:8]
 
 
+def _selected_columns(checks, tables, profiles):
+    """Establish an explicit column scope without evaluating formula caches."""
+    selected = defaultdict(set)
+    known = bool(checks)
+    for check in checks:
+        kind = check.get('kind')
+        if check.get('confirmed') is not True or kind not in {'reference', 'required', 'unique', 'totals'}:
+            known = False
+            continue
+        for name in ('left', 'right') if kind in {'reference', 'totals'} else ('left',):
+            side = check.get(name, {})
+            table = tables.get(side.get('dataset_id'))
+            columns = side.get('columns') or ([side['column']] if side.get('column') else [])
+            groups = side.get('group_by', [])
+            if not table or not isinstance(columns, list) or not isinstance(groups, list) or not columns or not all(isinstance(c, str) for c in columns + groups):
+                known = False
+                continue
+            keys = set(columns + groups)
+            profile = profiles[_identity(table)]
+            header = side.get('header_row_id', profile['header_row_id'])
+            if keys - {c['key'] for c in table['columns']} or ('header_row_id' not in side and profile['header_status'] != 'ready') or (header is not None and not any(r['row_id'] == header for r in table['rows'])):
+                known = False
+            selected[_identity(table)].update(keys)
+    return known, selected
+
+
 def analyze(envelopes, config=None):
     """Return bounded previews plus fully evaluated, source-linked findings.
 
@@ -419,6 +469,8 @@ def analyze(envelopes, config=None):
     findings = []
     conditions = {}
     ids = Counter(check.get('id') for check in checks)
+    scope_known, selected_columns = _selected_columns(checks, tables, profiles)
+    scope_known = scope_known and all(check.get('id') and ids[check['id']] == 1 for check in checks)
     for check in checks:
         if not check.get('id') or ids[check.get('id')] != 1:
             findings.append(_finding(check, [], 'invalid_id', 'needs_input', 'Confirm the check configuration',
@@ -434,14 +486,35 @@ def analyze(envelopes, config=None):
             and 'header_row_id' in check[side] and check[side]['header_row_id'] == profile['header_row_id']
             and check.get('confirmed') is True
             for check in checks for side in ('left', 'right'))
-        conditions[condition_key] = {'kind': 'coverage', 'passed': not profile['issues'] and header_confirmed,
+        # Keep the old coverage predicate conservative: a historical request
+        # about unchecked formulas must not be relabelled a passing cache check.
+        conditions[condition_key] = {'kind': 'coverage', 'passed': not profile['issues'] and not profile['formula_unverified'] and header_confirmed,
             'dataset_id': _identity(table), 'document_id': table.get('document_id'),
             'reason': 'Source-reading and header-interpretation conditions are satisfied for this same table. This is not financial verification.'}
         if profile['issues']:
             findings.append(_finding({'id': 'coverage-' + _hash(_stable_table(table)), 'kind': 'coverage'}, [table], 'coverage',
                 'needs_input', f"Check {profile['title']}", ' '.join(profile['issues']), profile['row_count'],
                 [_evidence(table, table['rows'][0], table['columns'][0]['key'])] if table.get('rows') and table.get('columns') else [],
+                records=_records(table, table.get('rows', []), table['columns'][0]['key']) if table.get('columns') else [],
                 expected='Complete source coverage and confirmed interpretation', observed='Needs checking'))
+        formula_check = {'id': 'formula-scope-' + _hash(_stable_table(table)), 'kind': 'formula_scope'}
+        formula_key = _finding(formula_check, [table], 'formulas', 'needs_input', '', '')['match_key']
+        conditions[formula_key] = {'kind': 'formula_scope', 'passed': not profile['formula_unverified'],
+                                   'reason': 'No unverified formula caches remain in this table.'}
+        if profile['formula_unverified']:
+            start = next((i + 1 for i, row in enumerate(table['rows']) if row['row_id'] == profile['header_row_id']), 0)
+            cells = [(row, column) for row in table['rows'][start:]
+                     for column, cell in row.get('metadata', {}).get('cells', {}).items()
+                     if cell.get('formula') and not cell['formula'].get('cache_verified')]
+            outside = scope_known and all(column not in selected_columns[_identity(table)] for _, column in cells)
+            explanation = (f'{len(cells):,} formula results are outside the columns used by your selected checks. These formulas have not been verified; approval covers only the selected checks.'
+                           if outside else f'{len(cells):,} formula results have not been independently checked. A selected or unresolved column scope still requires review.')
+            findings.append(_finding(formula_check, [table], 'formulas', 'needs_input',
+                'Unreviewed formula results', explanation, len(cells),
+                [_evidence(table, row, column) for row, column in cells[:MAX_EVIDENCE]],
+                records=[{'dataset_id': _identity(table), 'row_id': row['row_id'], 'column_key': column} for row, column in cells],
+                evidence_total=len(cells), blocking=not outside,
+                expected='Independently checked calculation results', observed='Formula caches remain unverified'))
     scope_key = _finding({'id': 'check_scope', 'kind': 'configuration'}, [], 'no_checks', 'needs_input', '', '')['match_key']
     conditions[scope_key] = {'kind': 'configuration', 'passed': bool(checks) and all(
         check.get('id') and ids[check.get('id')] == 1 and check.get('confirmed') is True
@@ -452,12 +525,15 @@ def analyze(envelopes, config=None):
             'Choose what this review should check',
             'Your documents have been profiled. Confirm a suggested check or choose the fields and totals that matter; extraction alone does not verify the figures.'))
     counts = Counter(finding['status'] for finding in findings)
-    configured_findings = [finding for finding in findings if finding['kind'] not in {'coverage', 'configuration'}]
+    configured_findings = [finding for finding in findings if finding['kind'] not in {'coverage', 'configuration', 'formula_scope'}]
     return {'tables': list(profiles.values()), 'suggestions': _suggestions(envelopes, profiles, checks),
             'findings': findings, 'condition_outcomes': conditions,
             'summary': {'table_count': len(envelopes), 'source_count': len({table.get('source_id') for table in envelopes}),
                 'row_count': sum(len(table.get('rows', [])) for table in envelopes), 'check_count': len(checks),
                 'passed': counts['passed'], 'difference': counts['difference'], 'needs_input': counts['needs_input'],
+                'blocking_needs_input': sum(f['status'] == 'needs_input' and f.get('blocking', True) for f in findings),
+                'nonblocking_needs_input': sum(f['status'] == 'needs_input' and not f.get('blocking', True) for f in findings),
+                'blocking_difference': sum(f['status'] == 'difference' and f.get('blocking', True) for f in findings),
                 'scoped_checks_passed': bool(checks) and bool(configured_findings) and all(f['status'] == 'passed' for f in configured_findings),
                 'financially_verified': False,
                 'message': 'Results apply only to the confirmed checks and selected evidence. They do not establish whole-pack financial correctness.'},

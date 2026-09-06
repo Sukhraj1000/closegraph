@@ -217,6 +217,60 @@ def test_evidence_is_bounded_without_losing_affected_count():
     finding = selected(analyze(tables, config))[0]
     assert finding['affected_count'] == finding['evidence_total'] == 1000
     assert len(finding['evidence']) == 12
+    assert finding['records_complete'] and finding['records_total'] == 1000
+    assert len(finding['_record_refs']) == 1000
+    assert len({ref['row_id'] for ref in finding['_record_refs']}) == 1000
+
+
+def test_all_duplicate_reference_groups_have_full_record_indexes():
+    tables, config = reference()
+    tables[1]['rows'] = [{'row_id': str(i), 'values': {'Investor ID': 'I-' + str(i % 2), 'Investor Name': 'Repeated'}} for i in range(60)]
+    item = selected(analyze(tables, config))[0]
+    assert item['status'] == 'needs_input'
+    assert item['affected_count'] == item['records_total'] == item['evidence_total'] == 60
+    assert len(item['_record_refs']) == 60
+
+
+def test_group_total_record_indexes_include_every_contributing_row_on_both_sides():
+    tables, config = totals()
+    for source in tables:
+        source['rows'] = [{'row_id': str(i), 'values': {'Entity': 'Fund', 'Currency': 'GBP', 'Investor ID': 'I-1', 'Amount': '1'}} for i in range(31)]
+    tables[1]['rows'][0]['values']['Amount'] = '2'
+    item = selected(analyze(tables, config), 'totals')[0]
+    assert item['affected_count'] == item['records_total'] == 62
+    assert len(item['evidence']) == 12 and len(item['_record_refs']) == 62
+    assert {r['dataset_id'] for r in item['_record_refs']} == {'Source', 'Report'}
+
+
+def test_unselected_formula_columns_remain_explicitly_unverified_without_blocking_scoped_checks():
+    tables, config = reference()
+    tables[0]['rows'][0]['metadata'] = {'cells': {'Amount': {'formula': {'expression': '1+1', 'cached_value': '2', 'cache_verified': False}}}}
+    before = deepcopy(tables)
+    result = analyze(tables, config)
+    warning = selected(result, 'formula_scope')[0]
+    assert warning['status'] == 'needs_input' and warning['blocking'] is False
+    assert 'have not been verified' in warning['explanation']
+    assert result['summary']['blocking_needs_input'] == 0
+    assert result['summary']['nonblocking_needs_input'] == 1
+    assert result['summary']['scoped_checks_passed'] is True
+    assert result['summary']['financially_verified'] is False
+    assert tables == before
+    config['checks'][0] = {'id': 'required-amount', 'kind': 'required', 'confirmed': True,
+                           'left': {'dataset_id': 'Activity', 'columns': ['Amount'], 'header_row_id': None}}
+    result = analyze(tables, config)
+    assert selected(result, 'formula_scope')[0]['blocking'] is True
+    assert selected(result, 'required')[0]['status'] == 'needs_input'
+
+
+def test_unknown_scope_and_incomplete_coverage_cannot_hide_behind_nonblocking_formula_notes():
+    tables, config = reference()
+    tables[0]['rows'][0]['metadata'] = {'cells': {'Amount': {'formula': {'expression': '1+1', 'cached_value': '2', 'cache_verified': False}}}}
+    for candidate in ({}, {'checks': [{**config['checks'][0], 'kind': 'unknown'}]}, {'checks': [{**config['checks'][0], 'confirmed': False}]}):
+        result = analyze(tables, candidate)
+        assert selected(result, 'formula_scope')[0]['blocking'] is True
+        assert result['summary']['blocking_needs_input'] > 0
+    tables[0]['coverage']['complete'] = False
+    assert analyze(tables, config)['summary']['blocking_needs_input'] > 0
 
 
 
