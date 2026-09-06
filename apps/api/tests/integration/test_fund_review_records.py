@@ -157,6 +157,7 @@ def test_unrelated_formula_warning_allows_only_selected_scope_approval_and_stays
     state = service.fund_review_review(state['id'], 'reviewer', state['version'], 'APPROVE', 'Only the declared identifier check was independently reviewed')
     content = service.fund_review_download(state['id'], 'reviewer', True)[0]
     assert b'formulas have not been verified' in content
+    assert b'Account manager' in content
     assert service.download(state['id'], 'reviewer', state['sources'][0]['id'])[0] == workbook
     state = service.get(state['id'], 'preparer')
     changed = deepcopy(config)

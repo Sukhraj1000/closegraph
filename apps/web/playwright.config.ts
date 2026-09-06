@@ -7,5 +7,5 @@ export default defineConfig({
  expect:{timeout:10000},
  reporter:[['list'],['json',{outputFile:process.env.CLOSEGRAPH_TEST_REPORT??'test-results/browser-results.json'}]],
  use:{...devices['Desktop Chrome'],baseURL:process.env.CLOSEGRAPH_UI_URL??'http://127.0.0.1:24173',connectOptions:process.env.CLOSEGRAPH_BROWSER_WS_ENDPOINT?{wsEndpoint:process.env.CLOSEGRAPH_BROWSER_WS_ENDPOINT}:undefined,trace:'retain-on-failure',screenshot:'only-on-failure'},
- projects:[{name:'demo-polish',testMatch:'demo-polish.spec.ts'},{name:'fund-review',testMatch:'fund-review.spec.ts'},{name:'reconciliation',testMatch:'reconciliation.spec.ts'},{name:'stories',testMatch:'stories.spec.ts'},{name:'native',testMatch:'native-journey.spec.ts'},{name:'pdf',testMatch:'native-pdf.spec.ts'},{name:'collections',testMatch:'collections.spec.ts'}],
+ projects:[{name:'role-smoke',testMatch:'role-smoke.spec.ts'},{name:'demo-polish',testMatch:'demo-polish.spec.ts'},{name:'fund-review',testMatch:'fund-review.spec.ts'},{name:'reconciliation',testMatch:'reconciliation.spec.ts'},{name:'stories',testMatch:'stories.spec.ts'},{name:'native',testMatch:'native-journey.spec.ts'},{name:'pdf',testMatch:'native-pdf.spec.ts'},{name:'collections',testMatch:'collections.spec.ts'}],
 });

@@ -1,4 +1,5 @@
 """Collection collaboration authority and evidence commands; no external delivery."""
+from .presentation import actor_name
 from copy import deepcopy
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -54,7 +55,7 @@ class CollaborationMixin:
         value['notifications']=[n for n in value.get('notifications',[]) if n.get('recipient_actor_id',n.get('recipient'))==actor]
         value.pop('idempotency',None);value.pop('retired_datasets',None);value.pop('preserved_output',None)
         for c in value.get('comparisons',[]):c.pop('data_hash',None)
-        value['flag_recipients']=[{'actor_id':m['actor_id'],'party':m['party'],'display_name':m['actor_id'].replace('_',' ').title()} for m in state['members'] if not access['restricted'] or m['party']=='account_manager']
+        value['flag_recipients']=[{'actor_id':m['actor_id'],'party':m['party'],'display_name':actor_name(m['actor_id'])} for m in state['members'] if not access['restricted'] or m['party']=='account_manager']
         for task in value.get('tasks',[]):
             task['allowed_actions']=[a for a in task.get('allowed_actions',[]) if (access['can_manage'] if a in ('release','resolve','reopen','make_blocking') else access['can_manage'] or task.get('owner_actor_id')==actor)]
             if access['can_manage'] and task.get('kind')=='manual' and task.get('active',True) and not task.get('blocking') and task.get('status')!='resolved':task['allowed_actions'].append('make_blocking')
@@ -75,7 +76,7 @@ class CollaborationMixin:
 
     def participants(self,identity,actor):
         with self._locked(identity,actor,'manage') as (_,_,state):
-            return [{**p,'display_name':p['actor_id'].replace('_',' ').title(),'party':PARTIES[p['role']]} for p in self.auth.collection_participants(state['tenant_id'],state['fund_id'])]
+            return [{**p,'display_name':actor_name(p['actor_id']),'party':PARTIES[p['role']]} for p in self.auth.collection_participants(state['tenant_id'],state['fund_id'])]
 
     def members(self,identity,actor,expected,members):
         with self._locked(identity,actor,'manage',expected) as (session,row,state):

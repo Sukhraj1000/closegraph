@@ -43,3 +43,9 @@ The React fund-review workspace uses the existing scoped Collections API. Immuta
 Changes rebind a configured table only when its logical document, unique table, column schema and header values agree. Otherwise the mapping needs confirmation again. Large results and before/after detail are stored in immutable blobs; normal result pages and previews are bounded.
 
 Notifications remain durable and in-app. Assignments are batched, passing checks are quiet, and deadlines produce one overdue notice plus one configured escalation per request cycle. Old failures and decisions remain in history. External participants cannot fetch the internal brief, its results or history without the corresponding internal authority.
+
+## Business accounts
+
+Sign in as `accountant`, `account_manager`, `fund_manager` or `investor` using the corresponding configured password. Role selection chooses an account; it does not bypass authentication or change permissions. The accountant/account-manager login names resolve to the existing immutable preparer/reviewer identities so saved memberships, contributions and approvals retain their meaning. Existing passwords and legacy logins remain valid. Normal account labels and participant names use the business roles.
+
+Processing stages and document counts appear only when available. Older saved jobs with only operational identifiers show a readable status without invented document counts.
