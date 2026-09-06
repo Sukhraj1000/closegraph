@@ -68,7 +68,7 @@ class CollaborationMixin:
         value['tasks']=[t for t in value['tasks'] if t['id'] in visible]
         # Shared tasks are request summaries, never implicit source or workbook grants.
         for task in value['tasks']:
-            for key in ('evaluation','evidence','operands','citations','details','result','check_result'):task.pop(key,None)
+            for key in ('evaluation','evidence','operands','citations','details','result','check_result','rule_signatures','match_keys','item_ids','check_ids','evaluation_fingerprint','assignment_key','outcome_fingerprint','item_kinds'):task.pop(key,None)
         value.update(requirements=[],check_results=[],members=[],comparisons=[],issues=[],history=[],steps=[],candidates=[],artifacts=[],recipe=None,review=None,summary={})
         allowed={'id','title','fund_id','version','status','access','documents','sources','datasets','tasks','notifications','requirements','check_results','members','comparisons','issues','history','steps','candidates','artifacts','recipe','review','summary','flag_recipients'}
         return {k:v for k,v in value.items() if k in allowed}
@@ -107,6 +107,7 @@ class CollaborationMixin:
                 if r.get('owner_party') in ('investor','fund_manager') and not any(m['actor_id']==r.get('owner_actor_id') for m in state['members']):raise ValueError('Assign the evidence owner to this collection first')
                 if r.get('kind')=='fee':r.setdefault('parameters',{})['rule_approved_by']=actor
             validate_requirements(requirements)
+            self._invalidate_fund_review(state)
             state['requirements']=requirements;state['requirements_version']+=1
             state['check_results']=[];state['review']=None
             for a in state['artifacts']:a['historical']=True
@@ -130,7 +131,11 @@ class CollaborationMixin:
             if source['status']!='EXTRACTED' or not source.get('coverage',{}).get('complete'):raise DomainConflict('Incomplete processing cannot be confirmed complete')
             source['completeness_verified']=True;source['completeness_verified_hash']=source['content_hash'];source['completeness_review']={'actor_id':actor,'reason':reason,'at':timestamp()}
             self._invalidate(state,actor)
+            if state.get('fund_review'):
+                state['status']='QUEUED'
             self._revision(session,row,state,actor,'source_coverage_verified',{'source_id':source_id,'reason':reason})
+            if state.get('fund_review'):
+                self._queue(session,row,state,'fund_review')
             return self._public(state,actor)
 
     def comparison(self,identity,actor,comparison_id,offset=0,limit=100):
@@ -222,7 +227,9 @@ class CollaborationMixin:
             if candidates[owner_actor_id] in ('investor','fund_manager') and not any(m['actor_id']==owner_actor_id for m in state['members']):raise ValueError('Assign the recipient to this collection first')
             create_manual_flag(state,{'id':'flag-'+uuid4().hex,'title':title,'reason':reason,'owner_actor_id':owner_actor_id,'owner_party':candidates[owner_actor_id],'document_ids':[document_id] if document_id else [],'blocking':blocking},actor,timestamp())
             if key:state['idempotency'][key]={'actor_id':actor,'fingerprint':fingerprint}
-            if blocking:state['review']=None;state['financial_verified']=False
+            if blocking:
+                state['review']=None;state['financial_verified']=False
+                self._invalidate_fund_review(state)
             self._revision(session,row,state,actor,'manual_flag_raised',{'title':title,'owner_actor_id':owner_actor_id,'blocking':blocking})
             return self._public(state,actor)
 
@@ -251,6 +258,7 @@ class CollaborationMixin:
                 if task.get('kind')!='manual' or not task.get('active',True) or task['status']=='resolved':raise ValueError('Only an active manual concern can be made blocking')
                 if not reason.strip():raise ValueError('Explain why this concern blocks approval')
                 task['blocking']=True;task['blocking_reason']=reason;state['review']=None
+                self._invalidate_fund_review(state)
             else:task_action(state,task_id,action,actor,now=timestamp(),note=reason,document_ids=documents)
             if key:state['idempotency'][key]={'actor_id':actor,'fingerprint':fingerprint}
             self._revision(session,row,state,actor,'task_updated',{'task_id':task_id,'action':action,'reason':reason})

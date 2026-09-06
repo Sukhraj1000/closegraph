@@ -15,6 +15,7 @@ from closegraph.services.repository import ScopedBlobs
 from .models import CollectionRow, CollectionRevisionRow, CollectionJobRow
 from .collaboration import CollaborationMixin
 from .reconciliation import ReconciliationMixin
+from .fund_review_service import FundReviewMixin
 from .documents import current_sources, add_source_revision, compare_sources, output_dependency_ids
 
 
@@ -38,7 +39,7 @@ def snapshot_digest(state):
     return sha256(encoded(payload)).hexdigest()
 
 
-class CollectionServices(ReconciliationMixin, CollaborationMixin):
+class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixin):
     def __init__(self, sessions, blobs, auth, *, pdf_provider=None):
         self.sessions, self.blob_store, self.auth, self.pdf_provider = sessions, blobs, auth, pdf_provider
 
@@ -72,6 +73,12 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
         if value.get('reconciliation'):
             value['reconciliation'].pop('result_hash',None)
             if value['reconciliation'].get('review'):value['reconciliation']['review'].pop('result_hash',None)
+        if value.get('fund_review'):
+            value['fund_review'].pop('result_hash', None)
+            value['fund_review'].pop('fingerprint', None)
+            if value['fund_review'].get('review'):
+                value['fund_review']['review'].pop('result_hash', None)
+                value['fund_review']['review'].pop('fingerprint', None)
         value['summary']={'source_count':len(value['sources']), 'dataset_count':len(value['datasets']),
             'row_count':sum(d['row_count'] for d in value['datasets'] if d['kind']=='extraction'),
             'accepted_datasets':sum(d['accepted'] for d in value['datasets'] if d['kind']=='extraction'),
@@ -147,6 +154,7 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
 
     def _invalidate(self,state,actor):
         self._invalidate_reconciliation(state)
+        self._invalidate_fund_review(state)
         state['datasets']=[d for d in state['datasets'] if d['kind']=='extraction']
         state['issues']=[i for i in state['issues'] if i.get('stage')!='transform' and i['code']!='processing_failed']
         state['review']=None;state['candidates']=[];state['steps']=[]
@@ -224,6 +232,8 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
                 for source in sources:source['status']='PENDING'
             pending=any(s['status']!='EXTRACTED' for s in current_sources(state))
             kind='extract' if pending else 'transform'
+            if state.get('fund_review'):
+                kind='fund_review'
             if kind=='transform':
                 self._rebind_recipe(state)
                 inputs=[d for d in state['datasets'] if d['kind']=='extraction']
@@ -248,8 +258,8 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
             for source in state['sources']:source['issues']=[i for i in state['issues'] if i.get('source_id')==source['id'] and i.get('stage')!='transform']
             self._invalidate(state,actor);state['status']='NEEDS_REVIEW'
             self._revision(session,row,state,actor,'extraction_corrected',{'dataset_id':dataset_id,'reason':reason,'edits':applied})
-            if state.get('reconciliation'):
-                state['status']='QUEUED';row.state=deepcopy(state);self._queue(session,row,state,'reconcile')
+            if state.get('fund_review') or state.get('reconciliation'):
+                state['status']='QUEUED';row.state=deepcopy(state);self._queue(session,row,state,'fund_review' if state.get('fund_review') else 'reconcile')
             return self._public(state,actor)
 
     def accept(self,identity,actor,expected,dataset_id=None):
@@ -373,7 +383,7 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
             self._compute_comparisons(state,force=True)
             state['status']='READY_FOR_REVIEW' if state.get('candidates') and self._financial_ready(state) else 'NEEDS_REVIEW'
             return state
-        if job['kind'] in ('extract','reconcile'):
+        if job['kind'] in ('extract','reconcile','fund_review'):
             self._progress(job,state,'Reading documents')
             for source in current_sources(state):
                 if source['status']=='EXTRACTED':continue
@@ -430,6 +440,9 @@ class CollectionServices(ReconciliationMixin, CollaborationMixin):
             if not result['tables']:state['issues'].append(issue('no_output','Recipe produced no output dataset',stage='transform'))
             state['status']='BLOCKED' if any(i['severity']=='error' and not i.get('resolved') for i in state['issues']) else 'READY_FOR_REVIEW'
         self._compute_comparisons(state)
+        if state.get('fund_review'):
+            self._progress(job,state,'Checking reporting evidence')
+            return self._compute_fund_review(state)
         if state.get('reconciliation'):
             self._progress(job,state,'Matching transactions')
             return self._compute_reconciliation(state)
