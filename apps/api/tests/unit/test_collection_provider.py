@@ -163,3 +163,27 @@ def test_http_gateway_requires_capability_before_processing(gateway,config,tmp_p
         handler=object.__new__(captured["handler"]);handler.path=route;handler.headers={"Authorization":authorization};handler.connection=SimpleNamespace(settimeout=lambda value:None);handler.send_error=Mock()
         handler.do_POST();handler.send_error.assert_called_once_with(403)
     process.assert_not_called()
+
+
+def test_cached_gateway_reuses_exact_receipt_and_never_falls_back_on_corruption(tmp_path):
+    gateway = Mock()
+    cached = provider.CachedGatewayProvider(tmp_path, gateway)
+    gateway.parse_pdf.return_value = "live"
+    assert cached.parse_pdf(PDF, scope=SCOPE, document_version_id="v1") == "live"
+    gateway.parse_pdf.assert_called_once()
+    gateway.reset_mock()
+    (tmp_path / (DIGEST + ".json")).write_text("invalid receipt")
+    result = cached.parse_pdf(PDF, scope=SCOPE, document_version_id="v1")
+    assert result.availability == "UNAVAILABLE"
+    assert result.mode == "REPLAY"
+    gateway.parse_pdf.assert_not_called()
+
+
+def test_valid_captured_receipt_decodes_without_gateway_call(tmp_path):
+ receipt={"source_sha256":DIGEST,"response_sha256":sha256(RAW).hexdigest(),"raw_response_base64":base64.b64encode(RAW).decode(),"settings":SETTINGS}
+ (tmp_path/(DIGEST+".json")).write_text(json.dumps(receipt))
+ gateway=Mock()
+ result=provider.CachedGatewayProvider(tmp_path,gateway).parse_pdf(PDF,scope=SCOPE,document_version_id="v1")
+ assert result.available and result.mode=="REPLAY"
+ assert result.raw_response==RAW
+ gateway.parse_pdf.assert_not_called()

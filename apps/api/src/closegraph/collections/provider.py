@@ -39,6 +39,38 @@ class GatewayProvider:
         except Exception:
             return ReductoResult('UNAVAILABLE',digest,diagnostics=('live_pdf_gateway_unavailable_or_source_not_authorized',),mode='LIVE')
 
+class CapturedProvider:
+    """Explicit development replay of immutable, hash-bound provider receipts."""
+    def __init__(self,directory):
+        from pathlib import Path
+        self.directory=Path(directory)
+    def parse_pdf(self,source,*,scope,document_version_id):
+        digest=sha256(source).hexdigest()
+        try:
+            path=self.directory/(digest+'.json')
+            if path.is_symlink() or path.stat().st_size>34_000_000:raise ValueError('Invalid receipt')
+            receipt=json.loads(path.read_text())
+            if receipt['source_sha256']!=digest:raise ValueError('Source mismatch')
+            raw=base64.b64decode(receipt['raw_response_base64'],validate=True)
+            if sha256(raw).hexdigest()!=receipt['response_sha256']:raise ValueError('Response mismatch')
+            return decode_response(raw,scope=scope,document_version_id=document_version_id,source_sha256=digest,settings=receipt.get('settings',{}),mode='REPLAY')
+        except Exception:
+            return ReductoResult('UNAVAILABLE',digest,diagnostics=('captured_response_unavailable_or_mismatched',),mode='REPLAY')
+
+class CachedGatewayProvider:
+    def __init__(self,directory,gateway):
+        self.capture=CapturedProvider(directory);self.gateway=gateway
+    def parse_pdf(self,source,*,scope,document_version_id):
+        digest=sha256(source).hexdigest()
+        if (self.capture.directory/(digest+'.json')).exists():
+            return self.capture.parse_pdf(source,scope=scope,document_version_id=document_version_id)
+        return self.gateway.parse_pdf(source,scope=scope,document_version_id=document_version_id)
+
 def collection_pdf_provider(environment):
+    if environment.get('CLOSEGRAPH_PDF_MODE')=='CAPTURED_REPLAY' and environment.get('CLOSEGRAPH_PDF_CAPTURE_DIR'):
+        return CapturedProvider(environment['CLOSEGRAPH_PDF_CAPTURE_DIR'])
     endpoint=environment.get('CLOSEGRAPH_PDF_GATEWAY_URL')
-    return GatewayProvider(endpoint,environment.get('CLOSEGRAPH_PDF_GATEWAY_TOKEN')) if endpoint else None
+    if not endpoint:return None
+    gateway=GatewayProvider(endpoint,environment.get('CLOSEGRAPH_PDF_GATEWAY_TOKEN'))
+    directory=environment.get('CLOSEGRAPH_PDF_CAPTURE_DIR')
+    return CachedGatewayProvider(directory,gateway) if directory else gateway

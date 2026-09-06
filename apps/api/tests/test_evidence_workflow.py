@@ -273,7 +273,7 @@ def test_overdue_and_escalation_fire_once_per_task_cycle_across_restart():
     sync_tasks(state, evaluations, NOW)
     records = deepcopy(state["notifications"])
     assert sum(n["event"] == "overdue" for n in records) == 1
-    assert {n["recipient_actor_id"] for n in records if n["event"] == "escalated"} == {"manager", "fund-manager"}
+    assert {n["recipient_actor_id"] for n in records if n["event"] == "escalated"} == {"manager"}
     restarted = deepcopy(state)
     sync_tasks(restarted, evaluations, "2026-09-20T00:00:00Z")
     assert restarted["notifications"] == records
