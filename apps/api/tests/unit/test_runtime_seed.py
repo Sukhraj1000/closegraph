@@ -10,8 +10,8 @@ from closegraph.contracts import Scope
 
 def test_runtime_seeds_two_distinct_scoped_packs_without_overwriting_existing(monkeypatch, tmp_path):
     monkeypatch.setenv("CLOSEGRAPH_DATABASE_URL", "postgresql+psycopg://unit-only")
-    monkeypatch.setenv("CLOSEGRAPH_PREPARER_PASSWORD", "synthetic-preparer-password")
-    monkeypatch.setenv("CLOSEGRAPH_REVIEWER_PASSWORD", "synthetic-reviewer-password")
+    for account in ("ACCOUNTANT", "ACCOUNT_MANAGER", "FUND_MANAGER", "INVESTOR"):
+        monkeypatch.setenv("CLOSEGRAPH_" + account + "_PASSWORD", "synthetic-" + account + "-password")
     monkeypatch.setenv("CLOSEGRAPH_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("CLOSEGRAPH_PDF_MODE", "DISABLED")
     monkeypatch.setattr(runtime, "make_engine", Mock(return_value=object()))
@@ -42,12 +42,19 @@ def test_runtime_seeds_two_distinct_scoped_packs_without_overwriting_existing(mo
     assert scopes[0].tenant_id == scopes[1].tenant_id
     assert scopes[0].fund_id == scopes[1].fund_id
     assert scopes[0].pack_id != scopes[1].pack_id
-    for actor in ("preparer", "reviewer"):
+    for actor in ("accountant", "account_manager"):
         for scope in scopes:
             services.auth.require(actor, scope, "inspect")
         with pytest.raises(DomainNotFound):
             services.auth.require(actor, Scope(tenant_id="foreign", fund_id=scopes[0].fund_id,
                                                pack_id=scopes[0].pack_id), "inspect")
+    for actor, role in (("fund_manager", "FUND_MANAGER"), ("investor", "INVESTOR")):
+        assert services.auth.collection_actor(actor)["role"] == role
+        for scope in scopes:
+            with pytest.raises(DomainNotFound):
+                services.auth.require(actor, scope, "inspect")
+    assert packs["synthetic-pack"]["contributors"] == ["accountant"]
+    assert packs["synthetic-pdf-pack"]["contributors"] == ["accountant"]
     packs["synthetic-pdf-pack"]["evidence"]["pdf-only"] = {"value": "synthetic"}
     packs["synthetic-pack"]["publications"].append({"id": "existing-release"})
     assert packs["synthetic-pack"]["evidence"] == {}
