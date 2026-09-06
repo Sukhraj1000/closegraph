@@ -2,7 +2,7 @@
 
 CloseGraph turns a private-fund reporting pack and supporting documents into a review brief: which selected checks pass, what needs clarification, and what changed after a correction. Original workbooks and formulas remain unchanged.
 
-Start with **New review**, **Recent work** and **Requests**. Upload the pack, confirm proposed checks using source previews, inspect findings, request evidence and compare revisions. See the [fund reporting review guide](docs/fund-reporting-review.md) and [technical acceptance](docs/verification/fund-review-acceptance.md).
+Start with **New review**, **Recent work** and **Requests**. Upload the pack, confirm proposed checks using source previews, inspect findings, request evidence and compare revisions. See the [fund reporting review guide](docs/fund-reporting-review.md) and [technical acceptance](docs/verification/fund-review-acceptance.md). For a short, repeatable presentation, use the [demo guide](docs/demo-guide.md).
 
 ## Existing Collections infrastructure
 
@@ -32,7 +32,7 @@ python3.12 scripts/local_runtime.py up
 python3.12 scripts/local_runtime.py status
 ```
 
-Open [CloseGraph](http://127.0.0.1:24173). `init` creates distinct random local `preparer` and `reviewer` passwords in the owner-only `.local/dev-runtime/.env`; it prints the location without printing secrets. The Collections tab creates independent source collections. The Reports tab retains the existing native reporting journey and PDF evidence demonstration. Use the explicitly labelled files in [fixtures/synthetic](fixtures/synthetic/README.md). These fictional rules are test authority, not general accounting treatment.
+Open [CloseGraph](http://127.0.0.1:24173). `init` creates distinct random local `preparer` and `reviewer` passwords in the owner-only `.local/dev-runtime/.env`; it prints the location without printing secrets. The standard navigation is New review, Recent work and Requests. Existing Collections and native reporting services remain compatible with stored work. Use the explicitly labelled files in [fixtures/synthetic](fixtures/synthetic/README.md). These fictional rules are test authority, not general accounting treatment.
 
 Stop with `python3.12 scripts/local_runtime.py down`; the managed database volume and source bytes are retained. Services bind to localhost and run under macOS Seatbelt. The runtime does not inherit provider, GitHub or Codex credentials and has no external provider egress. Live collections PDFs use the bounded loopback gateway described in the collection workflow; its provider key remains outside workers.
 

@@ -5,8 +5,10 @@ export interface ReviewCheck {id:string;title:string;kind:'reference'|'required'
 export interface ReviewConfig {checks:ReviewCheck[];confirmed_source_ids:string[];table_headers?:{dataset_id:string;header_row_id:string|null}[]}
 export interface TableProfile {source_name?:string;dataset_id:string;source_id:string;document_id?:string;title:string;row_count:number;data_row_count?:number;header_row_id?:string|null;header_status?:string;header_candidates?:{row_id:string;labels:string[]}[];columns:(Column&{concept?:string})[];preview:DataRow[];issues?:string[];coverage?:Record<string,unknown>}
 export interface FindingEvidence {dataset_id?:string;source_id?:string;document_id?:string;row_id?:string;column?:string;column_key?:string;raw_value?:unknown;locator?:Record<string,unknown>}
-export interface Finding {id:string;match_key:string;status:'difference'|'needs_input'|'passed';title:string;explanation:string;check_id?:string;kind:string;affected_count?:number;evidence:FindingEvidence[];operands?:unknown;expected?:unknown;observed?:unknown;evidence_total?:number}
-export interface FundRun {scope_note?:string;status:string;config:ReviewConfig;summary?:Record<string,unknown>;coverage?:Record<string,unknown>;changes?:Record<string,unknown>;review?:{decision?:string;reason?:string};stale?:boolean}
+export interface Finding {id:string;match_key:string;status:'difference'|'needs_input'|'passed';title:string;explanation:string;check_id?:string;kind:string;affected_count?:number;evidence:FindingEvidence[];operands?:unknown;expected?:unknown;observed?:unknown;evidence_total?:number;blocking?:boolean;records_complete?:boolean;records_total?:number}
+export interface AffectedRecord extends FindingEvidence {source_name:string;columns:Column[];values:Record<string,unknown>}
+export interface AffectedRecordsPage {records:AffectedRecord[];total:number;offset:number;limit:number;complete:boolean;message?:string}
+export interface FundRun {scope_note?:string;status:string;version?:number;completed_at?:string;config:ReviewConfig;summary?:Record<string,unknown>;coverage?:Record<string,unknown>;changes?:Record<string,unknown>;review?:{decision?:string;reason?:string};stale?:boolean}
 export type FundWork=Collection&{contributors?:string[];fund_review?:FundRun;reconciliation?:unknown;processing?:{stage:string;completed_documents:number;total_documents:number}};
 export interface BriefResults {tables:TableProfile[];suggestions:ReviewCheck[];findings:Finding[];total:number;summary:Record<string,unknown>;coverage:Record<string,unknown>;changes:Record<string,unknown>;stale?:boolean;version?:number}
 export const emptyConfig=():ReviewConfig=>({checks:[],confirmed_source_ids:[]});
@@ -20,7 +22,9 @@ export class FundReviewApi {
   return response.json();
  }
  start(work:FundWork,config:ReviewConfig,reason:string){return this.request<FundWork>(work.id,'/fund-review',{expected_version:work.version,config,reason,idempotency_key:crypto.randomUUID()});}
- results(id:string,status='',q='',offset=0){return this.request<BriefResults>(id,'/fund-review/results?'+new URLSearchParams({...status?{status}:{},q,offset:String(offset),limit:'50'}));}
+ results(id:string,status='',q='',offset=0,blocking?:boolean){return this.request<BriefResults>(id,'/fund-review/results?'+new URLSearchParams({...status?{status}:{},q,offset:String(offset),limit:'50',...(blocking===undefined?{}:{blocking:String(blocking)})}));}
+ records(id:string,findingId:string,offset=0){return this.request<AffectedRecordsPage>(id,'/fund-review/findings/'+encodeURIComponent(findingId)+'/records?'+new URLSearchParams({offset:String(offset),limit:'50'}));}
+ recordsDownload(id:string,findingId:string){return '/api/collections/'+encodeURIComponent(id)+'/fund-review/findings/'+encodeURIComponent(findingId)+'/download';}
  assign(work:FundWork,item_ids:string[],owner_actor_id:string,reason:string,due_at?:string){return this.request<FundWork>(work.id,'/fund-review/assign',{expected_version:work.version,item_ids,owner_actor_id,reason,...due_at?{due_at}:{}});}
  review(work:FundWork,decision:'APPROVE'|'REJECT',reason:string){return this.request<FundWork>(work.id,'/fund-review/review',{expected_version:work.version,decision,reason});}
  read(id:string,notification_ids:string[]){return this.request<FundWork>(id,'/notifications/read',{notification_ids});}
