@@ -1,5 +1,6 @@
 """Unseen, synthetic layouts; no provider network calls or private dataset fixtures."""
 import base64
+import csv
 import io
 import json
 import zipfile
@@ -294,3 +295,28 @@ def test_csv_record_detection_handles_newlines_and_embedded_decimal_commas():
     assert result['parser']['settings']['delimiter'] == ';'
     assert rows(result)[1]['values'] == {'c1': 'A', 'c2': '12,50', 'c3': 'first\nsecond'}
     assert rows(result)[2]['values']['c2'] == '2,30'
+
+
+@pytest.mark.parametrize('delimiter', [',', ';', '\t'])
+def test_csv_escaped_quotes_after_the_dialect_sample_preserve_exact_records(delimiter):
+    # Real exports can contain tens of thousands of numeric facts before the
+    # first quoted narrative. A quote-free discovery sample is not evidence
+    # that later records use a different escaping grammar.
+    stream = io.StringIO(newline='')
+    writer = csv.writer(stream, delimiter=delimiter)
+    writer.writerow(['Filing', 'Metric', 'Date', 'Currency', 'Amount', 'Note'])
+    for i in range(150):
+        writer.writerow(['00001234', 'AssetValue', '20100331', 'USD', str(i), 'Plain narrative ' + 'a' * 500])
+    narrative = 'The filing describes "quoted text, and commas"; another "term".\nSecond line remains in the same field.'
+    writer.writerow(['00001234', 'AssetValue', '20100331', 'USD', '4430000.0000', narrative])
+    content = stream.getvalue()
+    assert content.index('"quoted') > 65536
+    assert csv.Sniffer().sniff(content[:65536], delimiters=delimiter).doublequote is False
+    result = extract(content.encode(), filename='late-narratives.tsv' if delimiter == '\t' else 'late-narratives.csv')
+    expected = list(csv.reader(io.StringIO(content, newline=''), delimiter=delimiter))
+    actual = [list(row['values'].values()) for row in rows(result)]
+    assert actual == expected
+    assert actual[-1][-1] == narrative
+    assert result['coverage']['complete'] is True
+    assert 'ragged_rows' not in codes(result)
+    assert result['parser']['settings']['doublequote'] is True

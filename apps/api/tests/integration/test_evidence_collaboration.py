@@ -123,3 +123,40 @@ def test_manager_can_configure_comparison_without_becoming_preparer(service):
     s=run_pending(service,s['id']);assert s['status']=='READY_FOR_REVIEW'
     assert 'reviewer' not in s['contributors']
     assert approve(service,s)['status']=='APPROVED'
+
+
+@pytest.mark.parametrize('due_at', [None, '2999-01-01T00:00:00+00:00'])
+def test_deadline_sweep_does_not_create_a_revision_for_a_task_that_is_not_due(service, due_at):
+    from .test_fund_review_journey import review_pack, finding
+    state = review_pack(service, missing=True)
+    item = finding(service, state)
+    state = service.fund_review_assign(state['id'], 'reviewer', state['version'], [item['id']],
+                                       'preparer', 'Check this identifier when ready', due_at=due_at)
+    request = next(t for t in state['tasks'] if t['kind'] == 'fund_review')
+    assert not request.get('overdue')
+    version = state['version']
+    notice_count = len(service.get(state['id'], 'preparer')['notifications'])
+    service.sweep_deadlines()
+    service.sweep_deadlines()
+    observed = service.get(state['id'], 'preparer')
+    assert observed['version'] == version
+    assert len(observed['notifications']) == notice_count
+    assert not any(h['event'] == 'request_deadline_updated' for h in observed['history'])
+
+
+def test_real_deadline_transition_is_recorded_once_and_deduplicated(service):
+    from .test_fund_review_journey import review_pack, finding
+    state = review_pack(service, missing=True)
+    item = finding(service, state)
+    state = service.fund_review_assign(state['id'], 'reviewer', state['version'], [item['id']],
+                                       'preparer', 'A real past deadline needs escalation', due_at='2000-01-01T00:00:00+00:00')
+    version = state['version']
+    service.sweep_deadlines()
+    after = service.get(state['id'], 'preparer')
+    request = next(t for t in after['tasks'] if t['kind'] == 'fund_review')
+    assert request['overdue'] is True and request['escalated'] is True
+    assert after['version'] == version + 1
+    assert len([n for n in after['notifications'] if n['event'] == 'overdue']) == 1
+    assert len([n for n in service.get(state['id'], 'reviewer')['notifications'] if n['event'] == 'escalated']) == 1
+    service.sweep_deadlines()
+    assert service.get(state['id'], 'preparer')['version'] == after['version']

@@ -485,11 +485,15 @@ def _owner(state: dict, requirement: dict) -> tuple[str, str | None]:
 
 def _overdue(state: dict, task: dict, now: datetime) -> None:
     if not task.get("active", True) or task["status"] == "resolved" or not task.get("due_at"):
-        task["overdue"] = False
+        if task.get("overdue"):
+            task["overdue"] = False
         return
     deadline = _time(task["due_at"])
     if now <= deadline:
-        task["overdue"] = False
+        # An absent flag already means not overdue. Materialising False here
+        # creates a spurious history revision and races otherwise fresh writes.
+        if task.get("overdue"):
+            task["overdue"] = False
         return
     task["overdue"] = True
     _notify(state, task, "overdue", now)

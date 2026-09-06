@@ -176,8 +176,15 @@ def collection_router(auth,services):
     def fund_review(identity:str,command:FundReview,actor=Depends(user)):
         return call('fund_review_start',identity,actor,command.expected_version,command.config,command.reason,command.idempotency_key)
     @router.get('/{identity}/fund-review/results')
-    def fund_review_results(identity:str,status:Literal['difference','needs_input','passed']|None=None,q:str=Query(default='',max_length=500),offset:int=Query(default=0,ge=0),limit:int=Query(default=50,ge=1,le=500),actor=Depends(user)):
-        return call('fund_review_results',identity,actor,status,q,offset,limit)
+    def fund_review_results(identity:str,status:Literal['difference','needs_input','passed']|None=None,q:str=Query(default='',max_length=500),offset:int=Query(default=0,ge=0),limit:int=Query(default=50,ge=1,le=500),blocking:bool|None=None,actor=Depends(user)):
+        return call('fund_review_results',identity,actor,status,q,offset,limit,blocking)
+    @router.get('/{identity}/fund-review/findings/{finding_id}/records')
+    def fund_review_records(identity:str,finding_id:str,offset:int=Query(default=0,ge=0),limit:int=Query(default=50,ge=1,le=500),actor=Depends(user)):
+        return call('fund_review_records',identity,actor,finding_id,offset,limit)
+    @router.get('/{identity}/fund-review/findings/{finding_id}/download')
+    def fund_review_records_download(identity:str,finding_id:str,actor=Depends(user)):
+        content,media_type,filename=call('fund_review_records_download',identity,actor,finding_id)
+        return Response(content,media_type=media_type,headers={'Content-Disposition':"attachment; filename*=UTF-8''"+quote(filename,safe='')})
     @router.post('/{identity}/fund-review/assign')
     def fund_review_assign(identity:str,command:ReconcileAssignment,actor=Depends(user)):
         return call('fund_review_assign',identity,actor,command.expected_version,command.item_ids,command.owner_actor_id,command.reason,command.due_at)

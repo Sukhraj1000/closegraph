@@ -6,7 +6,7 @@ CloseGraph helps an accountant and an account manager inspect a reporting pack, 
 
 1. Sign in as the accountant. Choose **New review** and upload the reporting workbook plus the relevant ledger, reference lists or other evidence. Choose **Prepare review brief**.
 2. Read the coverage summary. **Choose checks for this pack** shows proposed reference checks with real source previews. Confirm only the list, columns, fund and period you intend to compare. Proposals are not accounting instructions.
-3. Open a finding. Compare its observed value, selected rule and source row. Follow the original-file link or **Inspect or correct this extraction**. A correction needs a reason and reruns the review.
+3. Open a finding. Compare its observed value, selected rule and source row. **View affected records** paginates every indexed source record and offers a complete CSV exception download. Older saved reviews with sample citations require a rerun before a complete download is available. Follow the original-file link or **Inspect or correct this extraction**. A correction needs a reason and reruns the review.
 4. If someone else must respond, assign a specific request. Reading it or uploading evidence does not resolve a system finding; a fresh check must clear it. Requests open directly to response controls and, for internal participants, the linked finding.
 5. Use **History** for the before/after outcome. An unavailable or withdrawn check is not recorded as a fix. Download a working HTML review brief while issues remain.
 6. An account manager who did not prepare the data or change its check configuration can approve the exact completed review scope after outstanding findings and blocking requests are cleared. This approves the selected checks, not the fund's accounts.
@@ -26,7 +26,7 @@ Not every review needs all four parties. A manager who changes check configurati
 
 The generic analyzer supports required values, unique business keys, reference-list membership and grouped totals. Column headings and exact value overlap suggest possible checks. The user confirms their meaning and scope. Grouped totals use decimal arithmetic, explicit grouping and zero monetary tolerance by default. Matching totals do not establish the correctness of individual transactions.
 
-Missing coverage, ambiguous headers, duplicate reference keys, unconfirmed PDF extraction and unverified formula results remain open. Small numeric values stored by Excel in scientific notation are preserved as exact decimals. No financial rule is inferred from a filename, a worksheet labelled “verified”, a narrative instruction or an AI parser's confidence.
+Missing coverage, ambiguous headers, duplicate reference keys, unconfirmed PDF extraction and selected unverified formula results remain open. Unverified formulas used only in unselected columns appear as supporting notes; they do not block approval of the exact supported check scope, and their caches are never relabelled verified. Small numeric values stored by Excel in scientific notation are preserved as exact decimals. No financial rule is inferred from a filename, a worksheet labelled “verified”, a narrative instruction or an AI parser's confidence.
 
 Current limitations:
 

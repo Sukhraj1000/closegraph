@@ -6,6 +6,8 @@ Dagster performs extraction and evaluation; this service records authority and v
 from copy import deepcopy
 from datetime import datetime
 from html import escape
+from io import StringIO
+import csv
 import json
 from uuid import uuid4
 
@@ -182,7 +184,7 @@ class FundReviewMixin:
                 'parser': source.get('parser', {}), 'accepted': dataset['accepted'],
                 'extraction_confirmed': source.get('completeness_verified') is True and source.get('completeness_verified_hash') == source['content_hash']})
         result = analyze(envelopes, review.get('config', {}))
-        result['rule_version'] = 'fund-review-v1'
+        result['rule_version'] = 'fund-review-v2'
         result['rule_signatures'] = self._fund_rule_signatures(state, envelopes)
         result['config'] = deepcopy(review.get('config', {}))
         result['source_versions'] = [{k: s.get(k) for k in ('id', 'document_id', 'filename', 'content_hash', 'parser', 'coverage', 'uploaded_by', 'uploaded_at', 'revision_number')} for s in sources]
@@ -201,10 +203,14 @@ class FundReviewMixin:
                 key = 'source-' + fingerprint(source['document_id'])[:20]
                 result['findings'].append({'id': key, 'match_key': key, 'status': 'needs_input', 'kind': 'coverage',
                     'title': 'Check ' + source['filename'], 'explanation': 'This document could not be read completely. Retry processing or upload a corrected version before relying on dependent checks.',
-                    'affected_count': 1, 'evidence': [{'source_id': source['id'], 'document_id': source['document_id']} ]})
+                    'affected_count': 1, 'evidence': [{'source_id': source['id'], 'document_id': source['document_id']} ],
+                    '_record_refs': [], 'records_complete': True, 'records_total': 0, 'blocking': True})
         summary = result.setdefault('summary', {})
         for status in ('difference', 'needs_input', 'passed'):
             summary[status] = sum(f['status'] == status for f in result['findings'])
+        summary['blocking_needs_input'] = sum(f['status'] == 'needs_input' and f.get('blocking', True) for f in result['findings'])
+        summary['nonblocking_needs_input'] = sum(f['status'] == 'needs_input' and not f.get('blocking', True) for f in result['findings'])
+        summary['blocking_difference'] = sum(f['status'] == 'difference' and f.get('blocking', True) for f in result['findings'])
         summary['financial_verified'] = False
         digest = self._fund_review_fingerprint(state)
         result['changes'] = old.get('changes', {}) if old and digest == review.get('fingerprint') else self._fund_changes(old, result)
@@ -241,7 +247,7 @@ class FundReviewMixin:
             condition = new.get('condition_outcomes', {}).get(key)
             if key in current:
                 status = 'outstanding'
-            elif finding.get('kind') in ('coverage', 'configuration') and condition and condition.get('passed') is True:
+            elif finding.get('kind') in ('coverage', 'configuration', 'formula_scope') and condition and condition.get('passed') is True:
                 status = 'fixed'
             elif same_rule and (key in passed_keys or finding.get('kind') != 'totals' and check in valid_checks and check not in uncertain_checks):
                 status = 'fixed'
@@ -261,14 +267,30 @@ class FundReviewMixin:
             raise DomainConflict('The review brief is still being prepared')
         return json.loads(self._blobs(state).get(review['result_hash']))
 
-    def fund_review_results(self, identity, actor, status=None, q='', offset=0, limit=50):
+    @staticmethod
+    def _public_fund_records(value):
+        """Never ship full stored row indexes inside list or change previews."""
+        if isinstance(value, list):
+            return [FundReviewMixin._public_fund_records(item) for item in value]
+        if isinstance(value, dict):
+            result = {k: FundReviewMixin._public_fund_records(v) for k, v in value.items() if k != '_record_refs'}
+            if 'match_key' in value and 'status' in value and 'evidence' in value:
+                result['records_complete'] = '_record_refs' in value and value.get('records_complete') is True
+                result.setdefault('records_total', max(value.get('affected_count', 0), value.get('evidence_total', len(value['evidence']))))
+                result.setdefault('blocking', True)
+            return result
+        return value
+
+    def fund_review_results(self, identity, actor, status=None, q='', offset=0, limit=50, blocking=None):
         with self._locked(identity, actor, 'history') as (_, _, state):
             result = self._fund_review_result(state)
             findings = result.pop('findings', [])
             if status:
                 findings = [f for f in findings if f['status'] == status]
+            if blocking is not None:
+                findings = [f for f in findings if f.get('blocking', True) is blocking]
             if q:
-                findings = [f for f in findings if q.casefold() in json.dumps(f, ensure_ascii=False).casefold()]
+                findings = [f for f in findings if q.casefold() in json.dumps({k: v for k, v in f.items() if k != '_record_refs'}, ensure_ascii=False).casefold()]
             # Detailed history/evaluation payloads stay in their scoped immutable blobs.
             for source in result.get('source_versions', []):
                 source.pop('content_hash', None)
@@ -276,8 +298,115 @@ class FundReviewMixin:
             changes = result.get('changes', {})
             changes['total'] = len(changes.get('items', []))
             changes['items'] = changes.get('items', [])[:50]
-            return {**result, 'findings': findings[offset:offset + limit], 'total': len(findings), 'offset': offset,
-                'limit': limit, 'stale': state['fund_review']['status'] != 'COMPLETE' or state['fund_review'].get('fingerprint') != self._fund_review_fingerprint(state), 'version': state['version']}
+            return self._public_fund_records({**result, 'findings': findings[offset:offset + limit], 'total': len(findings), 'offset': offset,
+                'limit': limit, 'stale': state['fund_review']['status'] != 'COMPLETE' or state['fund_review'].get('fingerprint') != self._fund_review_fingerprint(state), 'version': state['version']})
+
+    def _fund_record_context(self, state, finding_id):
+        result = self._current_fund_result(state)
+        finding = next((f for f in result['findings'] if f['id'] == finding_id), None)
+        if finding is None:
+            raise DomainNotFound()
+        complete = '_record_refs' in finding and finding.get('records_complete') is True
+        refs = finding.get('_record_refs') if complete else [
+            {'dataset_id': e['dataset_id'], 'row_id': e['row_id'], 'column_key': e.get('column_key', e.get('column'))}
+            for e in finding.get('evidence', []) if e.get('dataset_id') and e.get('row_id')]
+        total = len(refs) if complete else max(finding.get('records_total', 0), finding.get('affected_count', 0), finding.get('evidence_total', len(refs)))
+        return result, finding, refs, complete, total
+
+    def _fund_record_rows(self, state, result, refs):
+        from .fund_review import _evidence
+        source_ids = {source['id'] for source in result.get('source_versions', [])}
+        sources = {source['id']: source for source in current_sources(state) if source['id'] in source_ids}
+        datasets = {d['id']: d for d in state['datasets'] if d.get('source_id') in sources and d['kind'] == 'extraction'}
+        profiles = {p['dataset_id']: p for p in result.get('tables', [])}
+        cache = {}
+        records = []
+        for ref in refs:
+            dataset = datasets.get(ref['dataset_id'])
+            if not dataset:
+                raise DomainConflict('Source records changed. Run the review again before opening these records.')
+            if dataset['id'] not in cache:
+                table = self._table(state, dataset)
+                cache[dataset['id']] = table, {row['row_id']: row for row in table['rows']}
+            table, rows = cache[dataset['id']]
+            row = rows.get(ref['row_id'])
+            if row is None:
+                raise DomainConflict('An indexed source row is unavailable. Run the review again.')
+            source = sources[dataset['source_id']]
+            envelope = {**table, 'dataset_id': dataset['id'], 'source_id': source['id'], 'document_id': source['document_id']}
+            record = _evidence(envelope, row, ref.get('column_key'))
+            record.update(source_name=source['filename'], columns=profiles.get(dataset['id'], {}).get('columns', dataset['columns']),
+                          values=row.get('values', {}))
+            records.append(record)
+        return records
+
+    def fund_review_records(self, identity, actor, finding_id, offset=0, limit=50):
+        if not 0 <= offset or not 1 <= limit <= 500:
+            raise ValueError('Choose a valid record page')
+        with self._locked(identity, actor, 'history') as (_, _, state):
+            result, finding, refs, complete, total = self._fund_record_context(state, finding_id)
+            records = self._fund_record_rows(state, result, refs[offset:offset + limit])
+            return {'records': records, 'total': total, 'offset': offset, 'limit': limit, 'complete': complete,
+                    'message': None if complete else 'This earlier review retained sample citations only. Run the review again to see or download all affected records.'}
+
+    @staticmethod
+    def _fund_record_location(record):
+        locator = record.get('locator') or {}
+        if isinstance(locator, dict):
+            cell = locator.get('cell') or locator.get('cell_ref') or locator.get('cell_address')
+            if cell:
+                return ' '.join(str(x) for x in (locator.get('sheet'), cell) if x)
+            page = locator.get('original_page', locator.get('page'))
+            if page is not None:
+                return f'Page {page}, row {record.get("row_id", "")}'
+            if locator.get('row') is not None:
+                return f'Row {locator["row"]}'
+        return str(record.get('row_id', 'Original source'))
+
+    def fund_review_records_download(self, identity, actor, finding_id):
+        from .export import _csv_safe, _safe_text
+        with self._locked(identity, actor, 'release') as (session, row, state):
+            result, finding, refs, complete, _ = self._fund_record_context(state, finding_id)
+            if not complete:
+                raise DomainConflict('This review contains sample citations only. Run it again before downloading all affected records.')
+            records = self._fund_record_rows(state, result, refs)
+            fields, labels = [], []
+            used_labels = {'Source file', 'Table', 'Source location', 'Check', 'Outcome'}
+            seen = set()
+            multiple_tables = len({record['dataset_id'] for record in records}) > 1
+            for record in records:
+                for column in record['columns']:
+                    key = (record['dataset_id'], column['key'])
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    label = str(column.get('label') or column['key'])
+                    if multiple_tables:
+                        label = f'{record["source_name"]} / {record.get("table_title", "Table")} / {label}'
+                    base, suffix = label, 1
+                    while label in used_labels:
+                        suffix += 1
+                        label = f'{base} ({suffix})'
+                    used_labels.add(label)
+                    fields.append(key)
+                    labels.append(label)
+            stream = StringIO(newline='')
+            writer = csv.writer(stream, lineterminator='\r\n')
+            def safe(value):
+                text = _safe_text('' if value is None else str(value), xlsx=False)
+                escaped, _ = _csv_safe(text)
+                return "'" + text if escaped == text and text.lstrip('\ufeff \t\r\n').startswith(('=', '+', '-', '@')) else escaped
+            writer.writerow([safe(v) for v in ['Source file', 'Table', 'Source location', 'Check', 'Outcome', *labels]])
+            for record in records:
+                values = [record['source_name'], record.get('table_title', ''), self._fund_record_location(record),
+                          finding['title'], {'difference': 'Difference', 'needs_input': 'Needs your input', 'passed': 'Selected check passed'}[finding['status']]]
+                values += [record['values'].get(key) if dataset == record['dataset_id'] else None for dataset, key in fields]
+                writer.writerow([safe(value) for value in values])
+            content = stream.getvalue().encode('utf-8-sig')
+            self._revision(session, row, state, actor, 'fund_review_records_downloaded',
+                           {'finding_id': finding_id, 'row_count': len(records), 'result_hash': state['fund_review']['result_hash'],
+                            'formula_policy': 'Spreadsheet formula prefixes escaped with an apostrophe'})
+            return content, 'text/csv; charset=utf-8', 'affected-reporting-records.csv'
 
     def fund_review_assign(self, identity, actor, expected, item_ids, owner_actor_id, reason, due_at=None):
         from .workflow import _actions, _event, _notify
@@ -305,7 +434,8 @@ class FundReviewMixin:
                 return self._public(state, actor)
             task = {'id': 'task-' + uuid4().hex, 'kind': 'fund_review', 'title': selected[0]['title'] if len(selected) == 1 else str(len(selected)) + ' reporting findings need review',
                 'description': reason, 'message': reason, 'owner_actor_id': owner_actor_id, 'owner_party': member['party'],
-                'created_by': actor, 'created_at': stamp(), 'updated_at': stamp(), 'cycle': 1, 'active': True, 'blocking': True,
+                'created_by': actor, 'created_at': stamp(), 'updated_at': stamp(), 'cycle': 1, 'active': True,
+                'blocking': any(f.get('blocking', True) for f in selected),
                 'status': 'pending_manager_release' if member['party'] == 'investor' else 'open', 'document_ids': [],
                 'due_at': due_at, 'escalate_after_days': 0, 'events': [], 'item_ids': list(item_ids),
                 'match_keys': [f.get('match_key', f['id']) for f in selected], 'assignment_key': signature,
@@ -331,7 +461,7 @@ class FundReviewMixin:
             rules_same = all(task.get('rule_signatures', {}).get(c) == result.get('rule_signatures', {}).get(c) for c in checks)
             explicit_passes = bool(keys) and all(k in index and index[k]['status'] == 'passed' for k in keys)
             whole_check_passes = bool(checks) and all(c in certain and c not in uncertain for c in checks) and not any(k not in index and task.get('item_kinds', {}).get(k) == 'totals' for k in keys)
-            structural = bool(keys) and all(task.get('item_kinds', {}).get(k) in ('coverage', 'configuration') and result.get('condition_outcomes', {}).get(k, {}).get('passed') is True for k in keys)
+            structural = bool(keys) and all(task.get('item_kinds', {}).get(k) in ('coverage', 'configuration', 'formula_scope') and result.get('condition_outcomes', {}).get(k, {}).get('passed') is True for k in keys)
             passed = structural or rules_same and (explicit_passes or whole_check_passes) and all(k not in index or index[k]['status'] == 'passed' for k in keys)
             outcome = fingerprint([rules_same, [(f.get('match_key', f['id']), f['status'], f.get('observed'), f.get('expected'), f.get('affected_count'), f.get('explanation')) for f in linked]])
             task['item_ids'] = [f['id'] for f in linked]
@@ -361,7 +491,7 @@ class FundReviewMixin:
         checks = state['fund_review'].get('config', {}).get('checks', [])
         if not checks or any(c.get('confirmed') is not True for c in checks):
             raise DomainConflict('Confirm the intended review checks before approving the brief')
-        if not result.get('findings') or any(f['status'] != 'passed' for f in result['findings']):
+        if not result.get('findings') or any(f['status'] != 'passed' and f.get('blocking', True) for f in result['findings']):
             raise DomainConflict('Resolve the outstanding findings before approving this review scope')
         if result.get('coverage', {}).get('complete') is not True:
             raise DomainConflict('Complete source coverage is required before approval')
