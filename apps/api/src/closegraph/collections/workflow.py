@@ -443,10 +443,10 @@ def _actions(task: dict) -> list[str]:
         return ["release"]
     if status == "resolved":
         return ["reopen"] if task["kind"] == "manual" else []
-    actions = []
+    actions = ['reply']
     if status == "open":
         actions.append("acknowledge")
-    if status in ("open", "acknowledged"):
+    if status in ("open", "acknowledged", "evidence_received", "verification_pending"):
         actions.append("evidence_received")
     if status == "evidence_received":
         actions.append("request_verification")
@@ -455,21 +455,23 @@ def _actions(task: dict) -> list[str]:
     return actions
 
 
-def _notify(state: dict, task: dict, event: str, now: datetime | str, recipients: list[str] | None = None, *, revision: str | None = None) -> None:
+def _notify(state: dict, task: dict, event: str, now: datetime | str, recipients: list[str] | None = None, *, revision: str | None = None, actor_id: str | None = None) -> None:
     # Investor recipients receive nothing until account-manager release.
     if recipients is None:
         recipients = [task["owner_actor_id"]] if task.get("owner_actor_id") else []
-        if event in ('evidence_received','request_verification','acknowledge'):
+        if event in ('reply','evidence_received','request_verification','acknowledge'):
             recipients = list(set(recipients + ([task['created_by']] if task.get('created_by') else [m['actor_id'] for m in _members(state,'account_manager')])))
     if task["owner_party"] == "investor" and not task.get("released_at"):
         recipients = [m["actor_id"] for m in _members(state, "account_manager")]
     existing = {item["id"] for item in state.setdefault("notifications", [])}
     for recipient in sorted(set(recipients)):
+        if recipient == actor_id:
+            continue
         identity = "notification-" + _hash([task["id"], task.get("cycle", 1), event, recipient, revision])[:24]
         if identity in existing:
             continue
         state["notifications"].append({"id": identity, "task_id": task["id"], "request_id": task["id"],
-            "event": event, "cycle": task.get("cycle", 1), "recipient_actor_id": recipient,
+            "event": event, "actor_id": actor_id, "cycle": task.get("cycle", 1), "recipient_actor_id": recipient,
             "title": task["title"], "message": task.get("message", task.get("description", event.replace("_", " "))), "created_at": _stamp(now),
             "read_at": None, "delivery": "in_app", "document_ids": list(task.get("document_ids", []))})
         existing.add(identity)
@@ -710,8 +712,12 @@ def apply_task_action(state: dict, task_id: str, action: str, actor_id: str, now
         for field in ("resolved_at", "released_at", "released_by", "overdue", "escalated"):
             task.pop(field, None)
     _event(task, action, actor_id, now, note)
+    if action == 'evidence_received':
+        task['events'][-1]['document_ids'] = list(document_ids or task.get('document_ids', []))
     task["allowed_actions"] = _actions(task)
-    _notify(state, task, "request_released" if action == "release" else action, now)
+    _notify(state, task, "request_released" if action == "release" else action, now,
+            revision=str(len(task['events'])) if action in ('reply','evidence_received','request_verification') else None,
+            actor_id=actor_id)
     _overdue(state, task, _time(now))
     return task
 

@@ -213,7 +213,7 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
                 state['datasets']=[d for d in state['datasets'] if d.get('source_id')!=previous]
                 state['issues']=[i for i in state['issues'] if i.get('source_id')!=previous]
                 state['comparisons'].append({'id':uid('comparison'),'document_id':source['document_id'],'before_revision_id':previous,'after_revision_id':source_id,'status':'PENDING'})
-            if task_id:self._attach_task_evidence(state,actor,task_id,source)
+            if task_id:self._attach_task_evidence(state,actor,task_id,source,reason)
             if not preserve:self._invalidate(state,actor)
             state['status']='QUEUED'
             if idempotency_key:state['idempotency'][idempotency_key]={'actor_id':actor,'fingerprint':fingerprint,'source_id':source_id}

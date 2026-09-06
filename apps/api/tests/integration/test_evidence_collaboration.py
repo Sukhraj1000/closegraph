@@ -31,6 +31,59 @@ def test_upload_retry_and_revision_parent(service):
     c=second['comparisons'][0];page=service.comparison(second['id'],'reviewer',c['id'],0,1)
     assert page['total']>=1 and len(page['changes'])==1
 
+
+def test_replies_are_scoped_idempotent_and_do_not_resolve(service):
+    s=create(service)
+    s=service.flag(s['id'],'reviewer',s['version'],'Confirm scope','Confirm the agreed scope','preparer')
+    task=s['tasks'][0]
+    args=(s['id'],'preparer',s['version'],task['id'],'reply','Please clarify the reporting period')
+    first=service.task_action(*args,idempotency_key='reply-one')
+    retried=service.task_action(*args,idempotency_key='reply-one')
+    assert first['version']==retried['version']
+    assert first['tasks'][0]['status']=='open'
+    assert first['tasks'][0]['events'][-1]['note']=='Please clarify the reporting period'
+    notices=[n for n in service.inbox('reviewer') if n['event']=='reply']
+    assert len(notices)==1 and notices[0]['actor_id']=='preparer'
+    with pytest.raises(DomainNotFound):
+        service.task_action(s['id'],'investor',first['version'],task['id'],'reply','Unshared request')
+    second=service.task_action(s['id'],'preparer',first['version'],task['id'],'reply','Another material detail',idempotency_key='reply-two')
+    assert second['tasks'][0]['status']=='open'
+    assert len([n for n in service.inbox('reviewer') if n['event']=='reply'])==2
+
+
+def test_repeated_attachments_keep_notes_and_request_open(service):
+    s=create(service)
+    s=service.flag(s['id'],'reviewer',s['version'],'Evidence request','Attach the evidence','preparer')
+    task=s['tasks'][0]
+    for n in range(2):
+        s=service.upload(s['id'],'preparer',s['version'],f'response-{n}.csv','text/csv',base64.b64encode(DATA).decode(),task_id=task['id'],reason=f'Attachment note {n}')
+        s=run_pending(service,s['id'])
+    task=next(t for t in s['tasks'] if t['id']==task['id'])
+    assert task['status']=='evidence_received'
+    responses=[event for event in task['events'] if event['action']=='evidence_received']
+    assert [e['note'] for e in responses]==['Attachment note 0','Attachment note 1']
+    assert all(e['document_ids'] for e in responses)
+    assert len([n for n in service.inbox('reviewer') if n['event']=='evidence_received'])==2
+
+
+def test_extraction_storage_failure_is_actionable_and_retry_preserves_original(service,monkeypatch):
+    import errno
+    s=upload(service,create(service))
+    original=service._store
+    def full(*_):raise OSError(errno.ENOSPC,'No space left on device: private/path')
+    monkeypatch.setattr(service,'_store',full)
+    failed=run_pending(service,s['id'])
+    assert failed['sources'][0]['status']=='FAILED'
+    failure=failed['sources'][0]['issues'][0]
+    assert failure['code']=='storage_full' and 'Storage is full' in failure['message']
+    assert 'private/path' not in failure['message']
+    assert service.download(s['id'],'preparer',s['sources'][0]['id'])[0]==DATA
+    monkeypatch.setattr(service,'_store',original)
+    s=service.process(s['id'],'preparer',failed['version'],'extract',s['sources'][0]['id'])
+    recovered=run_pending(service,s['id'])
+    assert recovered['sources'][0]['status']=='EXTRACTED'
+    assert not recovered['financial_verified']
+
 def test_empty_check_policy_never_approves(service):
     s,d,k=extracted(service);s=service.accept(s['id'],'preparer',s['version'])
     s=service.recipe(s['id'],'preparer',s['version'],{'version':1,'steps':[],'output':d['id'],'checks':[]})

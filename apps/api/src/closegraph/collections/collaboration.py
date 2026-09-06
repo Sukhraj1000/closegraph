@@ -57,7 +57,9 @@ class CollaborationMixin:
         for c in value.get('comparisons',[]):c.pop('data_hash',None)
         value['flag_recipients']=[{'actor_id':m['actor_id'],'party':m['party'],'display_name':actor_name(m['actor_id'])} for m in state['members'] if not access['restricted'] or m['party']=='account_manager']
         for task in value.get('tasks',[]):
-            task['allowed_actions']=[a for a in task.get('allowed_actions',[]) if (access['can_manage'] if a in ('release','resolve','reopen','make_blocking') else access['can_manage'] or task.get('owner_actor_id')==actor)]
+            from .workflow import _actions
+            task['allowed_actions']=[a for a in _actions(task) if (access['can_manage'] if a in ('release','resolve','reopen','make_blocking') else access['can_manage'] or task.get('owner_actor_id')==actor)]
+            for event in task.get('events',[]):event['actor_name']=actor_name(event.get('actor_id','system'))
             if access['can_manage'] and task.get('kind')=='manual' and task.get('active',True) and not task.get('blocking') and task.get('status')!='resolved':task['allowed_actions'].append('make_blocking')
         if not access['restricted']:return value
         documents=self._allowed_document_ids(state,actor)
@@ -198,14 +200,14 @@ class CollaborationMixin:
         for r in state['requirements']:
             if r.get('blocking',True) and not any(c.get('requirement_id')==r['id'] and c.get('outcome',c.get('status'))=='PASS' for c in fresh):raise DomainConflict('Required evidence is stale or no longer passes')
 
-    def _attach_task_evidence(self,state,actor,task_id,source):
+    def _attach_task_evidence(self,state,actor,task_id,source,reason):
         from .workflow import task_action
         task=next((t for t in self._visible_tasks(state,actor) if t['id']==task_id),None)
         if not task or task.get('owner_actor_id')!=actor and not self._access(state,actor)['can_manage']:raise DomainForbidden()
         # A response upload grants its submitter access only to that document.
         member=next((m for m in state['members'] if m['actor_id']==actor),None)
         if member and source['document_id'] not in member.setdefault('document_ids',[]):member['document_ids'].append(source['document_id'])
-        task_action(state,task_id,'evidence_received',actor,now=timestamp(),note='Evidence uploaded',document_ids=[source['document_id']])
+        task_action(state,task_id,'evidence_received',actor,now=timestamp(),note=reason or 'Evidence uploaded',document_ids=[source['document_id']])
 
     def flag(self,identity,actor,expected,title,reason,owner_actor_id,document_id=None,blocking=False,idempotency_key=None):
         from .workflow import create_manual_flag

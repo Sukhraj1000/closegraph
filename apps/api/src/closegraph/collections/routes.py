@@ -69,7 +69,7 @@ class Flag(Version):
     blocking: bool=False
     idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
 class TaskAction(Version):
-    action: Literal['acknowledge','evidence_received','request_verification','resolve','release','reopen','make_blocking']
+    action: Literal['reply','acknowledge','evidence_received','request_verification','resolve','release','reopen','make_blocking']
     reason: str=Field(default='',max_length=2000)
     source_id: str|None=None
     idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
