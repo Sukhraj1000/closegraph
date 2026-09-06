@@ -1,41 +1,28 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import {act,render,screen,waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import {describe,expect,it,vi} from 'vitest';
 import App from './App';
-import { initialScenario, snapshot } from './lib/synthetic';
-
-describe('session transitions', () => {
- it('ignores a previous session response after a different account signs in', async () => {
-  const user=userEvent.setup();
-  const first={...snapshot(initialScenario('ready')),pack_id:'first-pack',title:'First fund private pack',fund_id:'First fund'};
-  const second={...snapshot(initialScenario('ready')),pack_id:'second-pack',title:'Second fund scoped pack',fund_id:'Second fund'};
-  const principal=(actor_id:string,csrf_token:string,pack_id:string)=>({actor:{actor_id,role:'PREPARER'},csrf_token,scopes:[{tenant_id:'test',fund_id:pack_id,pack_id}]});
-  let lists=0,resolveOld!:(response:Response)=>void;
-  const oldResponse=new Promise<Response>(resolve=>{resolveOld=resolve;});
-  const json=(body:unknown)=>new Response(JSON.stringify(body),{status:200});
-  vi.spyOn(globalThis,'fetch').mockImplementation(async(input,options)=>{
-   const url=String(input);
-   if(url==='/api/session')return json(principal('first-person','first-session','first-pack'));
-   if(url==='/api/session/logout')return new Response(null,{status:204});
-   if(url==='/api/session/login')return json(principal('second-person','second-session','second-pack'));
-   if(url==='/api/packs'){lists++;return lists===1?json([first]):lists===2?oldResponse:json([second]);}
-   if(url==='/api/packs/first-pack')return json(first);
-   if(url==='/api/packs/second-pack')return json(second);
-   throw new Error('Unexpected request '+url+' '+options?.method);
-  });
-  window.history.replaceState(null,'','#reports');
-  render(<App/>);
-  await screen.findByRole('heading',{name:'First fund private pack'});
-  await user.click(screen.getByRole('button',{name:'Refresh current version'}));
-  await waitFor(()=>expect(lists).toBe(2));
-  await user.click(screen.getByRole('button',{name:'Sign out'}));
-  await screen.findByRole('heading',{name:'Sign in to CloseGraph'});
-  await user.type(screen.getByRole('textbox',{name:'Username'}),'second-person');
-  await user.type(screen.getByLabelText('Password',{exact:true}),'test-password-not-a-secret');
-  await user.click(screen.getByRole('button',{name:'Sign in'}));
-  await screen.findByRole('heading',{name:'Second fund scoped pack'});
-  await act(async()=>{resolveOld(json([first]));await oldResponse;});
-  expect(screen.queryByText('First fund private pack')).not.toBeInTheDocument();
-  expect(screen.getByRole('heading',{name:'Second fund scoped pack'})).toBeVisible();
+const json=(body:unknown)=>new Response(JSON.stringify(body),{status:200});
+const principal=(id:string)=>({actor:{actor_id:id,role:'PREPARER'},csrf_token:id,collection_funds:[{tenant_id:'test',fund_id:'fund'}]});
+const work=(title:string)=>({id:title,title,sources:[],datasets:[],tasks:[],version:1,status:'EMPTY'});
+describe('reconciliation entry and identity',()=>{
+ it('shows the upload journey without technical workspace navigation',async()=>{
+  vi.spyOn(globalThis,'fetch').mockImplementation(async input=>String(input)==='/api/session'?json(principal('one')):json([]));
+  render(<App/>);await screen.findByRole('heading',{name:'Do your bank records agree?'});
+  expect(screen.getByLabelText('Bank statements')).toBeVisible();expect(screen.getByLabelText('Journal or working workbook')).toBeVisible();
+  expect(screen.queryByRole('button',{name:'Reports'})).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Collections'})).not.toBeInTheDocument();
+  expect(screen.getByRole('button',{name:'Reconcile documents →'})).toBeDisabled();
+ });
+ it('does not display delayed private work after changing accounts',async()=>{
+  const user=userEvent.setup();let identity='one',calls=0,resolveOld!:(r:Response)=>void;const old=new Promise<Response>(r=>{resolveOld=r;});
+  vi.spyOn(globalThis,'fetch').mockImplementation(async input=>{const url=String(input);if(url==='/api/session')return json(principal(identity));if(url==='/api/session/logout')return new Response(null,{status:204});if(url==='/api/session/login'){identity='two';return json(principal(identity));}if(url==='/api/collections'){calls++;return calls===1?old:json([work('Second account work')]);}throw Error(url);});
+  render(<App/>);await screen.findByRole('heading',{name:'Do your bank records agree?'});await user.click(screen.getByRole('button',{name:'Sign out'}));await screen.findByRole('heading',{name:'Sign in to CloseGraph'});
+  await user.type(screen.getByLabelText('Username'),'two');await user.type(screen.getByLabelText('Password'),'test-password');await user.click(screen.getByRole('button',{name:'Sign in'}));await screen.findByRole('heading',{name:'Do your bank records agree?'});await user.click(screen.getByRole('button',{name:'Recent work'}));await screen.findByText('Second account work');
+  await act(async()=>{resolveOld(json([work('First private work')]));await old;});expect(screen.queryByText('First private work')).not.toBeInTheDocument();
+ });
+ it('refreshes identity after a forbidden mutation and does not replay it',async()=>{
+  const user=userEvent.setup();let sessions=0,creates=0;
+  vi.spyOn(globalThis,'fetch').mockImplementation(async(input,options)=>{const url=String(input);if(url==='/api/session'){sessions++;return json(principal(sessions===1?'one':'two'));}if(url==='/api/collections'&&options?.method==='POST'){creates++;return new Response(JSON.stringify({detail:'Session changed'}),{status:403});}if(url==='/api/collections')return json([]);throw Error(url);});
+  render(<App/>);await screen.findByRole('heading',{name:'Do your bank records agree?'});await user.upload(screen.getByLabelText('Bank statements'),new File(['date,amount\n2026-01-01,1'],'bank.csv',{type:'text/csv'}));await user.upload(screen.getByLabelText('Journal or working workbook'),new File(['date,amount\n2026-01-01,1'],'journal.csv',{type:'text/csv'}));await user.click(screen.getByRole('button',{name:'Reconcile documents →'}));await screen.findByText(/Your session or permissions were refreshed/);await waitFor(()=>expect(sessions).toBe(2));expect(creates).toBe(1);
  });
 });

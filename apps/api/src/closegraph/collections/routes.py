@@ -24,6 +24,8 @@ class Upload(Version):
     period: str|None=Field(default=None,max_length=100)
     idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
     task_id: str|None=None
+    side: Literal['statement','journal']|None=None
+    defer_processing: bool=False
     as_of: str|None=Field(default=None,pattern=r'^\d{4}-\d{2}-\d{2}$')
 class Edit(Version):
     dataset_id: str
@@ -73,6 +75,19 @@ class TaskAction(Version):
     idempotency_key: str|None=Field(default=None,min_length=1,max_length=200)
 
 
+class Reconcile(Version):
+    source_sides: dict[str,Literal['statement','journal']]
+    config: dict[str,Any]=Field(default_factory=dict)
+    reason: str=Field(default='Compare uploaded evidence',min_length=1,max_length=2000)
+    idempotency_key: str|None=Field(default=None,max_length=200)
+class ReconcileAssignment(Version):
+    item_ids: list[str]=Field(min_length=1,max_length=1000)
+    owner_actor_id: str
+    reason: str=Field(min_length=1,max_length=2000)
+    due_at: str|None=None
+class NotificationRead(Command):
+    notification_ids: list[str]=Field(max_length=1000)
+
 def collection_router(auth,services):
     router=APIRouter(prefix='/api/collections')
     def user(request:Request):
@@ -95,7 +110,7 @@ def collection_router(auth,services):
     @router.get('/{identity}/history')
     def history(identity:str,actor=Depends(user)):return call('history',identity,actor)
     @router.post('/{identity}/sources')
-    def upload(identity:str,command:Upload,actor=Depends(user)):return call('upload',identity,actor,command.expected_version,command.filename,command.media_type,command.content_base64,document_id=command.document_id,parent_revision_id=command.parent_revision_id,reason=command.reason,period=command.period,idempotency_key=command.idempotency_key,task_id=command.task_id,as_of=command.as_of)
+    def upload(identity:str,command:Upload,actor=Depends(user)):return call('upload',identity,actor,command.expected_version,command.filename,command.media_type,command.content_base64,document_id=command.document_id,parent_revision_id=command.parent_revision_id,reason=command.reason,period=command.period,idempotency_key=command.idempotency_key,task_id=command.task_id,as_of=command.as_of,side=command.side,defer_processing=command.defer_processing)
     @router.post('/{identity}/process')
     def process(identity:str,command:Process,actor=Depends(user)):return call('process',identity,actor,command.expected_version,command.stage,command.source_id)
     @router.get('/{identity}/datasets/{dataset_id}/rows')
@@ -139,4 +154,18 @@ def collection_router(auth,services):
     def task_action(identity:str,task_id:str,command:TaskAction,actor=Depends(user)):return call('task_action',identity,actor,command.expected_version,task_id,command.action,command.reason,source_id=command.source_id,idempotency_key=command.idempotency_key)
     @router.post('/{identity}/comparisons/{comparison_id}/review')
     def review_comparison(identity:str,comparison_id:str,command:Coverage,actor=Depends(user)):return call('review_comparison',identity,actor,command.expected_version,comparison_id,command.reason)
+    @router.post('/{identity}/reconciliation')
+    def reconcile(identity:str,command:Reconcile,actor=Depends(user)):return call('reconcile',identity,actor,command.expected_version,command.source_sides,command.config,command.reason,command.idempotency_key)
+    @router.get('/{identity}/reconciliation/results')
+    def reconciliation_results(identity:str,status:Literal['matched','difference','missing','needs_input']|None=None,q:str=Query(default='',max_length=500),offset:int=Query(default=0,ge=0),limit:int=Query(default=50,ge=1,le=500),actor=Depends(user)):return call('reconciliation_results',identity,actor,status,q,offset,limit)
+    @router.get('/{identity}/reconciliation/download')
+    def reconciliation_download(identity:str,reviewed:bool=False,actor=Depends(user)):
+        content,media_type,filename=call('reconciliation_download',identity,actor,reviewed)
+        return Response(content,media_type=media_type,headers={'Content-Disposition':"attachment; filename*=UTF-8''"+quote(filename,safe='')})
+    @router.post('/{identity}/reconciliation/review')
+    def reconciliation_review(identity:str,command:Review,actor=Depends(user)):return call('reconciliation_review',identity,actor,command.expected_version,command.decision,command.reason)
+    @router.post('/{identity}/reconciliation/assign')
+    def reconciliation_assign(identity:str,command:ReconcileAssignment,actor=Depends(user)):return call('reconciliation_assign',identity,actor,command.expected_version,command.item_ids,command.owner_actor_id,command.reason,command.due_at)
+    @router.post('/{identity}/notifications/read')
+    def notifications_read(identity:str,command:NotificationRead,actor=Depends(user)):return call('notifications_read',identity,actor,command.notification_ids)
     return router

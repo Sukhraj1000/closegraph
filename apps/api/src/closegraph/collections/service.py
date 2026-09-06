@@ -14,6 +14,7 @@ from closegraph.contracts import Scope
 from closegraph.services.repository import ScopedBlobs
 from .models import CollectionRow, CollectionRevisionRow, CollectionJobRow
 from .collaboration import CollaborationMixin
+from .reconciliation import ReconciliationMixin
 from .documents import current_sources, add_source_revision, compare_sources, output_dependency_ids
 
 
@@ -37,7 +38,7 @@ def snapshot_digest(state):
     return sha256(encoded(payload)).hexdigest()
 
 
-class CollectionServices(CollaborationMixin):
+class CollectionServices(ReconciliationMixin, CollaborationMixin):
     def __init__(self, sessions, blobs, auth, *, pdf_provider=None):
         self.sessions, self.blob_store, self.auth, self.pdf_provider = sessions, blobs, auth, pdf_provider
 
@@ -68,6 +69,9 @@ class CollectionServices(CollaborationMixin):
             c['url']='/api/collections/'+value['id']+'/candidates/'+c['candidate_id']
         for a in value['artifacts']:a.pop('content_hash',None)
         value.pop('tenant_id',None)
+        if value.get('reconciliation'):
+            value['reconciliation'].pop('result_hash',None)
+            if value['reconciliation'].get('review'):value['reconciliation']['review'].pop('result_hash',None)
         value['summary']={'source_count':len(value['sources']), 'dataset_count':len(value['datasets']),
             'row_count':sum(d['row_count'] for d in value['datasets'] if d['kind']=='extraction'),
             'accepted_datasets':sum(d['accepted'] for d in value['datasets'] if d['kind']=='extraction'),
@@ -142,6 +146,7 @@ class CollectionServices(CollaborationMixin):
             return {'dataset_id':dataset['id'],'columns':table['columns'],'rows':table['rows'][offset:offset+limit], 'total':len(table['rows']),'offset':offset,'limit':limit,'offset_of_row':position,'version':dataset['version']}
 
     def _invalidate(self,state,actor):
+        self._invalidate_reconciliation(state)
         state['datasets']=[d for d in state['datasets'] if d['kind']=='extraction']
         state['issues']=[i for i in state['issues'] if i.get('stage')!='transform' and i['code']!='processing_failed']
         state['review']=None;state['candidates']=[];state['steps']=[]
@@ -157,7 +162,8 @@ class CollectionServices(CollaborationMixin):
     def _idle(self,state):
         if state['status'] in ('QUEUED','PROCESSING'):raise DomainConflict('Processing is queued or running; wait for its result')
 
-    def upload(self,identity,actor,expected,filename,media_type,content_base64,*,document_id=None,parent_revision_id=None,reason='Initial upload',period=None,idempotency_key=None,task_id=None,as_of=None):
+    def upload(self,identity,actor,expected,filename,media_type,content_base64,*,document_id=None,parent_revision_id=None,reason='Initial upload',period=None,idempotency_key=None,task_id=None,as_of=None,side=None,defer_processing=False):
+        if side not in (None,'statement','journal'):raise ValueError('Invalid input role')
         if as_of is not None:
             from datetime import date
             try:date.fromisoformat(as_of)
@@ -169,7 +175,7 @@ class CollectionServices(CollaborationMixin):
         expected_types={'csv':'text/csv','xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','pdf':'application/pdf'}
         if expected_types.get(suffix)!=media_type:raise ValueError('Supported source types are CSV, XLSX and PDF')
         with self._locked(identity,actor,'inspect') as (session,row,state):
-            fingerprint=sha256(encoded({'content':sha256(content).hexdigest(),'filename':filename,'media_type':media_type,'document_id':document_id,'parent_revision_id':parent_revision_id,'reason':reason,'period':period,'task_id':task_id,'as_of':as_of})).hexdigest()
+            fingerprint=sha256(encoded({'content':sha256(content).hexdigest(),'filename':filename,'media_type':media_type,'document_id':document_id,'parent_revision_id':parent_revision_id,'reason':reason,'period':period,'task_id':task_id,'as_of':as_of,'side':side,'defer_processing':defer_processing})).hexdigest()
             if idempotency_key and idempotency_key in state['idempotency']:
                 receipt=state['idempotency'][idempotency_key]
                 if receipt['actor_id']!=actor or receipt['fingerprint']!=fingerprint:raise DomainConflict('Upload key was already used for a different submission')
@@ -180,11 +186,14 @@ class CollectionServices(CollaborationMixin):
                 task=next((t for t in self._visible_tasks(state,actor) if t['id']==task_id),None)
                 if not task or task.get('owner_actor_id')!=actor:raise DomainForbidden()
                 if document_id and document_id not in self._allowed_document_ids(state,actor):raise DomainForbidden()
+            if defer_processing and not access['can_prepare']:raise DomainForbidden()
             if document_id and not reason.strip():raise ValueError('Explain the revision')
             key=self._blobs(state).put(content);source_id=uid('source')
             source={'id':source_id,'filename':filename,'media_type':media_type,'content_hash':key,'byte_size':len(content),'status':'PENDING','uploaded_by':actor,'uploaded_at':now(),'as_of':as_of}
             old=next((d for d in state['documents'] if d['id']==document_id),None)
             previous=old['current_revision_id'] if old else None
+            inherited=next((s.get('reconciliation_side') for s in state['sources'] if s['id']==previous),None)
+            if side or inherited:source['reconciliation_side']=side or inherited
             graph=output_dependency_ids(state)
             preserve=bool(state.get('candidates')) and graph['known'] and (document_id is None or document_id not in graph['document_ids']) and not task_id
             if preserve:state['preserved_output']={k:deepcopy(state.get(k)) for k in ('status','review','check_results','financial_verified','verification_fingerprint')}
@@ -199,7 +208,9 @@ class CollectionServices(CollaborationMixin):
             state['status']='QUEUED'
             if idempotency_key:state['idempotency'][idempotency_key]={'actor_id':actor,'fingerprint':fingerprint,'source_id':source_id}
             self._revision(session,row,state,actor,'source_uploaded',{'source_id':source_id,'document_id':source['document_id'],'parent_revision_id':previous,'filename':filename,'sha256':key,'reason':reason})
-            self._queue(session,row,state,'extract')
+            if defer_processing:
+                state['status']='NEEDS_REVIEW';row.state=deepcopy(state)
+            else:self._queue(session,row,state,'extract')
             return self._public(state,actor)
 
     def process(self,identity,actor,expected,stage=None,source_id=None):
@@ -237,6 +248,8 @@ class CollectionServices(CollaborationMixin):
             for source in state['sources']:source['issues']=[i for i in state['issues'] if i.get('source_id')==source['id'] and i.get('stage')!='transform']
             self._invalidate(state,actor);state['status']='NEEDS_REVIEW'
             self._revision(session,row,state,actor,'extraction_corrected',{'dataset_id':dataset_id,'reason':reason,'edits':applied})
+            if state.get('reconciliation'):
+                state['status']='QUEUED';row.state=deepcopy(state);self._queue(session,row,state,'reconcile')
             return self._public(state,actor)
 
     def accept(self,identity,actor,expected,dataset_id=None):
@@ -336,6 +349,16 @@ class CollectionServices(CollaborationMixin):
                 self._finish(session,job,{'execution_error':'Bounded Dagster recovery exhausted; retry processing explicitly'},run_id)
             else:job.status='PENDING';job.dagster_run_id=None
 
+    def _progress(self,job,state,stage):
+        # Progress is operational metadata, not a new financial snapshot.
+        sources=current_sources(state)
+        with self.sessions() as session,session.begin():
+            row=session.scalar(select(CollectionRow).where(CollectionRow.id==state['id']).with_for_update())
+            if row and row.version==job['snapshot']['version']:
+                value=deepcopy(row.state)
+                value['processing']={'kind':job['kind'],'stage':stage,'completed_documents':sum(s['status']=='EXTRACTED' for s in sources),'total_documents':len(sources)}
+                row.state=value
+
     def compute(self,job):
         from .extract import extract_source
         from .transform import run_recipe
@@ -350,7 +373,8 @@ class CollectionServices(CollaborationMixin):
             self._compute_comparisons(state,force=True)
             state['status']='READY_FOR_REVIEW' if state.get('candidates') and self._financial_ready(state) else 'NEEDS_REVIEW'
             return state
-        if job['kind']=='extract':
+        if job['kind'] in ('extract','reconcile'):
+            self._progress(job,state,'Reading documents')
             for source in current_sources(state):
                 if source['status']=='EXTRACTED':continue
                 state['issues']=[i for i in state['issues'] if i.get('source_id')!=source['id']]
@@ -370,6 +394,7 @@ class CollectionServices(CollaborationMixin):
                     source['status']='FAILED' if any(i['severity']=='error' for i in newissues) and not tables else 'EXTRACTED'
                 except Exception as exc:
                     source['status']='FAILED';state['issues'].append(issue('extraction_failed',str(exc)[:500],source_id=source['id'],stage='extraction'))
+                self._progress(job,state,'Reading documents')
             state['status']='BLOCKED' if any(i['severity']=='error' and not i.get('resolved') for i in state['issues']) else 'NEEDS_REVIEW'
         else:
             inputs=[d for d in state['datasets'] if d['kind']=='extraction']
@@ -405,6 +430,9 @@ class CollectionServices(CollaborationMixin):
             if not result['tables']:state['issues'].append(issue('no_output','Recipe produced no output dataset',stage='transform'))
             state['status']='BLOCKED' if any(i['severity']=='error' and not i.get('resolved') for i in state['issues']) else 'READY_FOR_REVIEW'
         self._compute_comparisons(state)
+        if state.get('reconciliation'):
+            self._progress(job,state,'Matching transactions')
+            return self._compute_reconciliation(state)
         preserved=state.pop('preserved_output',None)
         if preserved:
             state.update(preserved)

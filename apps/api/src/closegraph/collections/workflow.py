@@ -345,7 +345,7 @@ def _calculate(state: dict, requirement: dict, table: dict, result: dict) -> Non
             if any(not isinstance(parameters.get(key), str) or not parameters[key].strip() for key in ("rule_id", "rule_version", "rule_approved_by")):
                 raise PendingEvidence("NEEDS_REVIEW", "Fee treatment needs an explicit approved versioned rule")
             approver = parameters["rule_approved_by"]
-            if not any(m["actor_id"] == approver and m.get("party") in ("account_manager", "fund_manager") for m in _members(state)):
+            if not any(m["actor_id"] == approver and m.get("party") == "account_manager" for m in _members(state)):
                 raise PendingEvidence("NEEDS_REVIEW", "The fee rule approver is not an active authorised management member")
             scale = parameters.get("scale", 2)
             if type(scale) is not int or not 0 <= scale <= 12:
@@ -459,6 +459,8 @@ def _notify(state: dict, task: dict, event: str, now: datetime | str, recipients
     # Investor recipients receive nothing until account-manager release.
     if recipients is None:
         recipients = [task["owner_actor_id"]] if task.get("owner_actor_id") else []
+        if event in ('evidence_received','request_verification','acknowledge'):
+            recipients = list(set(recipients + ([task['created_by']] if task.get('created_by') else [m['actor_id'] for m in _members(state,'account_manager')])))
     if task["owner_party"] == "investor" and not task.get("released_at"):
         recipients = [m["actor_id"] for m in _members(state, "account_manager")]
     existing = {item["id"] for item in state.setdefault("notifications", [])}
@@ -493,7 +495,7 @@ def _overdue(state: dict, task: dict, now: datetime) -> None:
     _notify(state, task, "overdue", now)
     delay = task.get("escalate_after_days")
     if delay is not None and now > deadline + timedelta(days=delay):
-        managers = [m["actor_id"] for m in _members(state) if m.get("party") in ("account_manager", "fund_manager")]
+        managers = [m["actor_id"] for m in _members(state) if m.get("party") == "account_manager"]
         _notify(state, task, "escalated", now, managers)
         task["escalated"] = True
 
