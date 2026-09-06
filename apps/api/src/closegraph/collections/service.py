@@ -301,11 +301,21 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
             self._revision(session,row,state,actor,'output_reviewed',state['review'])
             return self._public(state,actor)
 
+    def _check_approval_authority(self, state, approval):
+        approver = approval.get('actor_id')
+        # The caller holds the authority lock through the release transaction.
+        with self.auth.collection_authorized(approver, action='review') as grants:
+            self._authorize_state(state, approver, 'review', grants)
+            self._authorize_state(state, approver, 'release', grants)
+            if approver in state.get('contributors', []):
+                raise DomainForbidden()
+
     def export(self,identity,actor,expected,dataset_id,format,template_source_id=None,bindings=None):
         with self._locked(identity,actor,'release',expected) as (session,row,state):
             self._check_review_gate(state)
             review=state.get('review')
             if state['status']!='APPROVED' or not review or review['decision']!='APPROVE' or review['snapshot_digest']!=snapshot_digest(state):raise DomainConflict('Independent approval of this exact output is required')
+            self._check_approval_authority(state, review)
             dataset=self._dataset(state,dataset_id)
             if dataset['kind']!='output':raise DomainConflict('Only reviewed output datasets can be released')
             candidate=next((c for c in state['candidates'] if c['dataset_id']==dataset['id'] and c['format']==format),None)

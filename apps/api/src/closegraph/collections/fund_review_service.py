@@ -489,6 +489,12 @@ class FundReviewMixin:
 
     def _fund_review_gate(self, state):
         result = self._current_fund_result(state)
+        current_ids = {source['id'] for source in current_sources(state)}
+        historical_ids = {source['id'] for source in state['sources']} - current_ids
+        if any(issue.get('severity') == 'error' and not issue.get('resolved')
+               and issue.get('stage') in (None, 'extraction')
+               and issue.get('source_id') not in historical_ids for issue in state['issues']):
+            raise DomainConflict('Resolve extraction errors before approving this review scope')
         checks = state['fund_review'].get('config', {}).get('checks', [])
         if not checks or any(c.get('confirmed') is not True for c in checks):
             raise DomainConflict('Confirm the intended review checks before approving the brief')
@@ -523,6 +529,7 @@ class FundReviewMixin:
 
     def fund_review_download(self, identity, actor, reviewed=False):
         with self._locked(identity, actor, 'release') as (session, row, state):
+            self._idle(state)
             result = self._current_fund_result(state)
             review = state['fund_review']
             if reviewed:
@@ -530,6 +537,7 @@ class FundReviewMixin:
                 approval = review.get('review', {})
                 if approval.get('decision') != 'APPROVE' or approval.get('fingerprint') != review['fingerprint'] or approval.get('result_hash') != review['result_hash']:
                     raise DomainConflict('Independent approval of this exact review brief is required')
+                self._check_approval_authority(state, approval)
             def text(value):
                 return escape('' if value is None else str(value))
             status_label = 'Reviewed for the selected checks' if reviewed else 'Working review — unresolved findings may remain'
