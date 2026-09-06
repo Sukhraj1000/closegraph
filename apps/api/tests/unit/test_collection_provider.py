@@ -42,6 +42,33 @@ def test_missing_configuration_is_unavailable_without_a_fallback():
     assert provider.collection_pdf_provider({}) is None
     with pytest.raises(ValueError):provider.collection_pdf_provider({"CLOSEGRAPH_PDF_GATEWAY_URL":"http://127.0.0.1:24183/parse"})
 
+def test_disabled_mode_ignores_configured_gateway_and_capture(tmp_path, monkeypatch):
+    gateway = Mock()
+    monkeypatch.setattr(provider, "GatewayProvider", gateway)
+    assert provider.collection_pdf_provider({
+        "CLOSEGRAPH_PDF_MODE": "DISABLED",
+        "CLOSEGRAPH_PDF_GATEWAY_URL": "http://127.0.0.1:24183/parse",
+        "CLOSEGRAPH_PDF_GATEWAY_TOKEN": "offline-token",
+        "CLOSEGRAPH_PDF_CAPTURE_DIR": str(tmp_path),
+    }) is None
+    gateway.assert_not_called()
+
+
+@pytest.mark.parametrize("directory", [None, ""])
+def test_replay_requires_capture_directory_even_with_gateway(directory, monkeypatch):
+    gateway = Mock()
+    monkeypatch.setattr(provider, "GatewayProvider", gateway)
+    environment = {
+        "CLOSEGRAPH_PDF_MODE": "CAPTURED_REPLAY",
+        "CLOSEGRAPH_PDF_GATEWAY_URL": "http://127.0.0.1:24183/parse",
+        "CLOSEGRAPH_PDF_GATEWAY_TOKEN": "offline-token",
+    }
+    if directory is not None:
+        environment["CLOSEGRAPH_PDF_CAPTURE_DIR"] = directory
+    with pytest.raises(ValueError, match="capture directory"):
+        provider.collection_pdf_provider(environment)
+    gateway.assert_not_called()
+
 @pytest.mark.parametrize("endpoint",["https://platform.reducto.ai/parse","http://localhost:24183/parse","http://127.0.0.1:24183/other","http://127.0.0.1:24184/parse","https://untrusted.invalid/parse"])
 def test_only_exact_loopback_gateway_is_configurable(endpoint):
     with pytest.raises(ValueError):provider.GatewayProvider(endpoint,"offline-token")
