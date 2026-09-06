@@ -1,0 +1,22 @@
+.batman-sprite{width:40px;height:48px;display:block;overflow:visible;image-rendering:pixelated;filter:drop-shadow(0 2px 1px #0008)}
+.batman-cape,.batman-arm,.batman-leg{transform-box:fill-box;transform-origin:50% 0%}
+.batman-loader-track{position:relative;width:112px;height:60px;flex:none;overflow:hidden;border-bottom:2px solid #72834e}
+.batman-loader-track .batman-sprite{position:absolute;bottom:1px;left:0;animation:batman-run 2.8s linear infinite;--batman-travel:68px}
+.batman-loader-track .batman-leg.left,.move-run .batman-leg.left{animation:batman-stride .28s steps(2,end) infinite}
+.batman-loader-track .batman-leg.right,.move-run .batman-leg.right{animation:batman-stride .28s steps(2,end) infinite reverse}
+.batman-pet-stage{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:55;contain:layout style}
+.batman-visit{position:absolute;bottom:45px;width:56px;height:68px;--batman-travel:min(240px,60vw);animation-duration:5.6s;animation-timing-function:linear;animation-fill-mode:both;will-change:transform,opacity}
+.batman-visit.left{left:-58px}.batman-visit.right{right:-58px;--batman-travel:max(-240px,-60vw)}
+.batman-visit .batman-sprite{width:56px;height:68px}.batman-visit.right .batman-sprite{scale:-1 1}
+.move-run{animation-name:batman-run}.move-flip{animation-name:batman-flip}.move-glide{animation-name:batman-glide}.move-grapple{animation-name:batman-grapple}
+.move-glide .batman-cape{transform:scaleX(1.8)}.move-glide .batman-arm.left{transform:rotate(65deg)}.move-glide .batman-arm.right{transform:rotate(-65deg)}
+.move-grapple .batman-arm.right{transform:rotate(170deg)}
+.batman-rope{display:none}.move-grapple .batman-rope{display:block;position:absolute;bottom:62px;left:33px;width:1px;height:65vh;background:#91a1b7;opacity:.7}
+.batman-pet-toggle{position:fixed;right:12px;bottom:10px;z-index:56;width:32px;height:32px;padding:2px;border:1px solid transparent;border-radius:8px;background:#1c2532;color:#dbe4f0;opacity:.5;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.batman-pet-toggle .batman-sprite{width:19px;height:24px}.batman-pet-toggle span{position:absolute;right:0;bottom:0;font-size:8px;background:#1c2532}.batman-pet-toggle:hover,.batman-pet-toggle:focus-visible{opacity:1;border-color:#c3d997;outline-offset:3px}
+@keyframes batman-stride{from{transform:rotate(-23deg)}to{transform:rotate(23deg)}}
+@keyframes batman-run{0%,100%{transform:translateX(0)}10%{transform:translateX(calc(var(--batman-travel)*.2)) translateY(-2px)}44%{transform:translateX(var(--batman-travel))}52%{transform:translateX(var(--batman-travel)) scaleX(-1)}90%{transform:translateX(calc(var(--batman-travel)*.2)) scaleX(-1)}99%{transform:scaleX(-1)}}
+@keyframes batman-flip{0%,100%{transform:translate(0,0);opacity:0}15%{transform:translate(calc(var(--batman-travel)*.5),0);opacity:1}36%{transform:translate(calc(var(--batman-travel)*.75),-86px) rotate(180deg)}56%{transform:translate(var(--batman-travel),0) rotate(360deg)}75%{transform:translate(var(--batman-travel),0) rotate(360deg)}90%{opacity:1}99%{transform:translate(0,0) rotate(360deg);opacity:0}}
+@keyframes batman-glide{0%,100%{transform:translate(0,-180px);opacity:0}20%{transform:translate(calc(var(--batman-travel)*.4),-140px);opacity:1}65%{transform:translate(var(--batman-travel),-35px)}85%{transform:translate(var(--batman-travel),0);opacity:1}99%{transform:translate(0,0);opacity:0}}
+@keyframes batman-grapple{0%,100%{transform:translate(0,0);opacity:0}20%,38%{transform:translate(var(--batman-travel),0);opacity:1}65%{transform:translate(var(--batman-travel),-150px);opacity:1}90%{transform:translate(var(--batman-travel),-65vh);opacity:0}}
+@media(prefers-reduced-motion:reduce){.batman-loader-track *{animation:none!important}.batman-loader-track .batman-sprite{left:34px}.batman-pet-stage,.batman-pet-toggle{display:none}}
