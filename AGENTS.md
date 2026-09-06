@@ -13,7 +13,7 @@ The user authorized the full active MVP to be implemented, tested, independently
 
 ## Current scope
 
-Use case 1 is implemented and technically accepted; its completed change is `openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack`. Use case 2 requires a separately scoped change and is not started. Existing missing evidence must block a pack in the MVP; request/notification automation is deferred.
+Use case 1 is implemented and technically accepted; its completed change is `openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack`. Phase 2 (use case 2) in that archived OpenSpec plan remains unopened and requires a separately scoped change. Bounded in-app Collections requests, owners, deadlines and deduplicated escalation are implemented outside that OpenSpec phase; they do not change the archived checklist or baseline specs. Existing missing evidence must still block a pack. External delivery and live source connectors remain deferred. See `ARCHITECTURE.md` for the current implemented-system map and separate reporting-pack/Collections paths.
 
 The user authorized implementation and automated engineering acceptance of the active MVP. Do not mark implementation tasks complete, archive the change or populate implemented baseline specs until real implementation and acceptance evidence exist.
 

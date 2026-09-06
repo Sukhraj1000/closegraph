@@ -1,10 +1,10 @@
-Current authorization: `docs/engineering/standing-authorization.md` supersedes the historical manual-approval, distinct-approver, branch-protection and final-user-signoff requirements below. Do not ask the user to authorize routine engineering work again. Historical adapter availability claims are not evidence of current runtime capability.
+# Historical engineering architecture: native Hermes cron
 
-# Engineering architecture: native Hermes cron
+> Historical record of the paused Hermes setup. The present-tense statements and gates below describe that earlier snapshot, not the current system. [Standing engineering authorization](standing-authorization.md) supersedes its manual approval, distinct approving account, branch-protection prerequisite and final user sign-off requirements. [The Codex runner guide](codex-runner.md) describes the selected engineering workflow and required runtime evidence; this notice does not assert live activation. [ARCHITECTURE.md](../../ARCHITECTURE.md) is the canonical implemented product map, and [CI](../../.github/workflows/ci.yml) defines the current repository checks. The historical body is retained for traceability.
 
 ## Scope and current state
 
-Use existing Hermes cron instead of building another scheduler, webhook listener or controller. This engineering workflow is separate from CloseGraph's financial FastAPI/PostgreSQL/Dagster/React application. There is no QA bot and hosted CI is deferred.
+Use existing Hermes cron instead of building another scheduler, webhook listener or controller. This engineering workflow is separate from CloseGraph's financial FastAPI/PostgreSQL/Dagster/React application. This historical design has no QA bot; hosted repository checks are now defined in `.github/workflows/ci.yml` and do not activate the paused cron workflow.
 
 Delivery is a paused setup: an issue catalogue, native cron definitions, a read-only GitHub change monitor and a tested macOS sandbox runner. It is NOT an operational unattended issue-to-merge fleet. Live coding/review adapters and trusted publishing/merge integration remain activation work. `automation.cron_tools status` deliberately reports `dispatch_available=false`; cron prompts must stop at that gate.
 

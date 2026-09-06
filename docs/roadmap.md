@@ -2,6 +2,8 @@
 
 This is the phase index. Phase 1 has recorded automated technical acceptance in [the acceptance report](verification/mvp-acceptance.md). Its 40-task checklist is archived; no phase-2 change is active.
 
+This index retains the archived OpenSpec plan's phase boundary. Subsequent direct Collections work implements bounded in-app requests, owners, deadlines and deduplicated escalation outside that OpenSpec phase. It does not open phase 2 or amend the archived checklist/baseline specs. External delivery and live source connectors remain deferred. See the [implemented-system map](../ARCHITECTURE.md) and [Collections workflow](engineering/collections-workflow.md) for current runtime scope.
+
 ## Phase 1 — Verify a corrected reporting pack (implemented MVP)
 
 Completed change: [verify-corrected-reporting-pack](../openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack/tasks.md). Five implemented capabilities live in [baseline specs](../openspec/specs/).
@@ -30,11 +32,11 @@ All of the following must have recorded evidence in the phase-1 acceptance repor
 
 After this gate, open a separate OpenSpec change for phase 2. Do not pre-build a generic workflow platform "to prepare" for it.
 
-## Phase 2 — Resolve missing-evidence handoffs (deferred)
+## Phase 2 — Resolve missing-evidence handoffs (OpenSpec phase unopened)
 
 Outcome: "This deliverable is blocked by this specific evidence, this person owns the next action, and the request is tracked to verified resolution."
 
-Candidate follow-on scope, to refine against the working MVP:
+Historical candidate follow-on scope, to refine against the working MVP and the bounded in-app Collections functionality now implemented outside this phase:
 - Expected-evidence records attached to the existing pack/issue.
 - Authorised owners, configured due dates/timezones and visible downstream blocking.
 - Permission-scoped requests and acknowledgements.

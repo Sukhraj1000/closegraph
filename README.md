@@ -4,6 +4,10 @@ CloseGraph helps private-market fund teams answer **what is holding up this repo
 
 Interviews with fund managers, accountants and account managers identified repeated manual workbook checks, unclear sources of truth, and long chains of requests for missing information. This POC keeps the question, source record, owner and correction history together. It supports an existing administrator workflow; it does not produce or certify NAV, fees or final accounts.
 
+**[Watch the 4:53 demo](https://drive.google.com/file/d/1PqvqqFrLSXyXixYrqbaN-kVW5u1vsAiP/view?usp=sharing)** — follow the accountant, account manager, fund manager and investor through evidence review, requests, a source-backed correction and independent approval.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the canonical implemented-system map, runtime entrypoints and trust boundaries.
+
 ## Judges: run the local demo
 
 Prerequisites: **macOS**, Docker Desktop running, **uv**, Python 3.12 and Node.js 20.19+ (or a supported later version). Ports 24173, 24180, 24181, 24182 and 55432 must be free. From this repository:
@@ -54,6 +58,8 @@ Do not upload interview transcripts as accounting evidence. Begin with the **two
 
 Lead with one useful question and one source record. Keep the accountant and account manager central. Show fund manager/investor access only if a specific request has been set up for them. Each check needs explicit meaning and scope; uploading alone is not a conclusion.
 
+Affected-record CSV downloads include each field's effective value, original extracted value and any correction author/reason. Existing Excel or Power Query imports using the previous column headings should select the new **Effective value** headings for the values used by the check.
+
 ## What is working, and what is not claimed
 
 - **Working:** native CSV/XLSX extraction; explicit required-value, uniqueness, reference and grouped-total checks; paginated evidence and complete affected-record CSVs; corrections and uploaded revisions; scoped in-app requests; quiet history; independent approval tied to exact versions; HTML review briefs.
@@ -68,9 +74,9 @@ Batman appears beside processing status and makes one brief visit per minute, ro
 
 ## Product-track framing and submission
 
-The organiser's product-track slides allocate **25% each to problem identification, product, UI and code review**. Show the interview pain, one completed evidence/request workflow, a readable source-linked screen and the actual acceptance/architecture evidence. See [the detailed demo and rehearsal checklist](docs/judge-demo.md), [fund reporting workflow](docs/fund-reporting-review.md), [technical acceptance](docs/verification/fund-review-acceptance.md) and [architecture](docs/product-architecture.md).
+The organiser's product-track slides allocate **25% each to problem identification, product, UI and code review**. Show the interview pain, one completed evidence/request workflow, a readable source-linked screen and the actual acceptance/architecture evidence. See [the detailed demo and rehearsal checklist](docs/judge-demo.md), [fund reporting workflow](docs/fund-reporting-review.md), [technical acceptance](docs/verification/fund-review-acceptance.md) and [implemented architecture](ARCHITECTURE.md).
 
-Submission handoff still needs a **3–5 minute recorded demo**, the organiser's submission form, and repository access that meets the organiser's public-repository requirement. This change does not make the repository public. Private datasets, credentials and interview documents must remain outside the repository. Hosting is optional in the judging materials and is not needed for this local demonstration.
+The **[recorded demo (4:53)](https://drive.google.com/file/d/1PqvqqFrLSXyXixYrqbaN-kVW5u1vsAiP/view?usp=sharing)** accompanies this repository and the local setup instructions above. The organiser's submission form remains a separate handoff step. Private datasets, credentials and interview documents stay outside the repository. Hosting is optional in the judging materials and is not needed for this local demonstration.
 
 ## Existing Collections infrastructure
 
@@ -78,7 +84,7 @@ The earlier Collections workspace provides **Overview, Documents, Tasks, Review 
 
 The underlying collection services accept varied CSV/XLSX layouts and configured Reducto PDF extraction. Review source-linked tables, resolve errors, select headers and accept the exact input version. Reusable versioned recipes define mappings, joins, Decimal calculations, classification, allocation, reshaping and required checks. An independent account manager inspects exact draft exports before those bytes can be released.
 
-See the [collection workflow and limits](docs/engineering/collections-workflow.md), [recipe reference](docs/engineering/collection-recipes.md), and [collection verification](docs/verification/collections-acceptance.md). PDF extraction is AI-assisted and requires review; confidence is not proof of correctness. Native spreadsheet extraction and transformations do not use an LLM. The direct collections implementation leaves OpenSpec unchanged, as requested.
+See the [collection workflow and limits](docs/engineering/collections-workflow.md), [recipe reference](docs/engineering/collection-recipes.md), and [collection verification](docs/verification/collections-acceptance.md). PDF extraction is AI-assisted and requires review; confidence is not proof of correctness. Native spreadsheet extraction and transformations do not use an LLM. The direct Collections implementation leaves OpenSpec unchanged, as requested: its bounded in-app requests, owners and deadlines do not open the archived plan's phase 2. External delivery and live source connectors remain deferred.
 
 ## Existing reporting packs
 
@@ -92,9 +98,22 @@ React/TypeScript provides source-to-value review, corrections, check explanation
 
 The user supplied [standing engineering authorization](docs/engineering/standing-authorization.md) for implementation, testing, independent review, repairs, PR publication and automatic merging. Routine engineering work requires no additional approval. This does not fabricate a human review or override financial approval inside the application.
 
-The [Codex runner](https://github.com/Sukhraj1000/closegraph/pull/55) uses isolated clones, up to three disjoint ownership claims, a sandbox-only command broker, a separate review run, exact revision checks, serial merging and post-merge verification. Its installed CLI boundary must pass an empirical pilot before activation. The earlier Hermes schedules remain paused. Historical paused-setup documents are retained as history; the standing authorization and current runner documentation describe the selected workflow.
+The [Codex runner](docs/engineering/codex-runner.md) uses isolated clones, up to three disjoint ownership claims, a sandbox-only command broker, a separate review run, exact revision checks, serial merging and post-merge verification. Its installed CLI boundary must pass an empirical pilot before activation. The earlier Hermes schedules remain paused. Historical paused-setup documents are retained as history; the standing authorization and current runner documentation describe the selected workflow.
 
 ## Verification
+
+[GitHub Actions CI](.github/workflows/ci.yml) runs on pull requests and pushes to `main`, with read-only repository permissions and cancellation of superseded runs:
+
+| Job | Exact scope |
+| --- | --- |
+| `specs` | Ubuntu 24.04, Node 24: root `npm ci` and `npm run spec:check`. |
+| `backend` | Ubuntu 24.04, Python 3.12/uv: locked API dependencies, PostgreSQL 16 Alpine via `CLOSEGRAPH_TEST_DATABASE_URL`, `pytest apps/api/tests --ignore=apps/api/tests/live -q -ra`, and Ruff on API source/tests with only `E9,F63,F7,F82`. Full Ruff is deferred while its existing backlog is not green. |
+| `web` | Ubuntu 24.04, Node 24: web `npm ci`, Vitest, TypeScript/Vite build, Storybook build, Playwright Chromium installation, then only `--project=stories --project=batman` against local Vite preview and static Storybook servers. Readiness failure stops the job; owned servers are cleaned up on exit. |
+| `automation` | macOS 15, Node 24, uv-managed Python 3.12: `python -m unittest discover -s automation/tests -v`, `python scripts/local_runtime.py self-test`, and `node --test scripts/demo.test.mjs`. |
+
+CI uses no secrets or private fixtures and performs no deployment. The full application browser journeys and live PDF acceptance remain separate local checks. Non-live provider contract tests use labelled fixtures; an optional retained-capture unit test can report a skip when its local artifact is absent. Skips are visible in pytest's summary and do not establish live acceptance.
+
+For the broader local verification (with its prerequisites configured):
 
 ```sh
 uv run --locked --project apps/api pytest apps/api/tests -q
@@ -109,6 +128,10 @@ npm run spec:check
 Database tests require an isolated real PostgreSQL database through `CLOSEGRAPH_TEST_DATABASE_URL`. The actual browser journeys require the local services and explicit test accounts; the PDF contract suite and retained live receipt have distinct configuration. See the [acceptance evidence](docs/verification/mvp-acceptance.md) for reproducible command environments and actual results. A missing prerequisite is not a passing test.
 
 OpenSpec is pinned locally. The [completed implementation checklist](openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack/tasks.md), [design](openspec/changes/archive/2026-09-05-verify-corrected-reporting-pack/design.md), [acceptance criteria](docs/acceptance.md) and [product brief](docs/product-brief.md) define scope. OpenSpec validation checks specification structure; it does not test the application. The five implemented [baseline specs](openspec/specs/) are synchronised; no phase-2 change is active.
+
+## Deployment target
+
+[vercel.json](vercel.json) builds and serves **only a labelled synthetic Storybook UI/workflow demo**, using the repository root as the project root and Node 24. [.vercelignore](.vercelignore) limits CLI uploads to its build inputs, including the synthetic citation PDF. Story actions use fictional browser-local state. FastAPI, PostgreSQL, Dagster, accounts and local-file persistence are not hosted by this configuration; the complete product demo remains local on macOS via `npm run demo`. No deployment is performed by CI.
 
 ## Product and data boundaries
 
