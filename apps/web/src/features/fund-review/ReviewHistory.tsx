@@ -4,7 +4,7 @@ import {actorLabel,readableDate} from './presentation';
 
 type Event=Record<string,unknown>;
 const title=(value:unknown)=>String(value??'Saved update').replaceAll('_',' ').replace(/^./,c=>c.toUpperCase());
-const routine=new Set(['processing_started','processing_completed','fund_review_completed','extraction_completed']);
+const routine=new Set(['notifications_read','processing_started','processing_completed','fund_review_completed','extraction_completed']);
 export function orderedEvents(events:Event[]){return events.map((event,index)=>({event,index})).sort((a,b)=>{
  const time=(e:Event)=>Date.parse(String(e.at??e.timestamp??e.created_at??''))||0;
  return time(b.event)-time(a.event)||b.index-a.index;
