@@ -1,0 +1,26 @@
+import {useState} from 'react';
+import type {FundWork} from './api';
+import {statusLabel} from '../collections/presentation';
+import {actorLabel,readableDate} from './presentation';
+import {Loading} from '../reconciliation/Loading';
+
+type Props={works:FundWork[];loading:boolean;pending:boolean;username:string;selected?:string;onOpen:(work:FundWork,taskId:string)=>void;onRead:(work:FundWork,ids:string[])=>void;children?:React.ReactNode};
+const events:Record<string,string>={reply:'Sent a reply',acknowledge:'Acknowledged the request',evidence_received:'Attached evidence',request_verification:'Requested verification',resolved:'Resolved after checking',resolve:'Resolved the concern',request_released:'Released the request',assigned:'Assigned a request',created:'Created a request',overdue:'Request is overdue',escalated:'Escalated the overdue request',material_change:'Evidence or findings changed',review_invalidated:'Review needs checking again'};
+
+export function RequestInbox({works,loading,pending,username,selected,onOpen,onRead,children}:Props){
+ const [review,setReview]=useState(''),[filter,setFilter]=useState('mine'),[allUpdates,setAllUpdates]=useState(false);
+ const items=works.flatMap(work=>(work.tasks??[]).filter(task=>task.requirement_id!=='missing_check_policy').map(task=>({work,task})))
+  .filter(({work,task})=>(!review||work.id===review)&&(filter==='all'||task.active!==false&&task.status!=='resolved')&&(filter!=='mine'||task.owner_actor_id===(work.access?.actor_id??username)))
+  .sort((a,b)=>String(b.task.updated_at??'').localeCompare(String(a.task.updated_at??'')));
+ const notices=works.flatMap(work=>(work.notifications??[]).filter(n=>!n.read&&!n.read_at).map(n=>({work,n})))
+  .sort((a,b)=>String(b.n.created_at??'').localeCompare(String(a.n.created_at??'')));
+ const groups=new Map<string,typeof notices>();
+ for(const entry of notices){const key=entry.work.id+':'+String(entry.n.task_id??entry.n.request_id??entry.n.id);groups.set(key,[...(groups.get(key)??[]),entry]);}
+ return <>
+  <section className="fr-inbox-updates" aria-label="Notification updates"><p role="status" aria-live="polite">{notices.length?`${notices.length} unread ${notices.length===1?'update':'updates'}`:'You’re up to date — no unread updates.'} <span className="fr-muted">Updates refresh while this page is open.</span></p>
+   {!!notices.length&&<details open><summary>Latest updates</summary>{[...groups].slice(0,allUpdates?undefined:1).map(([key,entries])=>{const {work,n}=entries[0];const taskId=String(n.task_id??n.request_id??'');return <article className="fr-notification" key={key}><strong>{String(n.title??'Review update')}</strong><small>{work.title}</small>{entries.map(({n})=><p key={String(n.id)}>{n.actor_id?actorLabel(n.actor_id,work)+' · ':''}{events[String(n.event??n.kind)]??statusLabel(String(n.event??n.kind??'Saved update'))}<small>{readableDate(n.created_at)}</small></p>)}<div className="fr-actions"><button className="fr-text-button" disabled={pending} onClick={()=>onRead(work,entries.map(({n})=>String(n.id)))}>Mark read</button><button className="fr-text-button" disabled={pending} onClick={()=>onOpen(work,taskId)}>{taskId?'View request':'View review'}</button></div></article>;})}{groups.size>1&&<button className="fr-text-button" onClick={()=>setAllUpdates(!allUpdates)}>{allUpdates?'Show latest request update':`Show updates for ${groups.size} requests`}</button>}</details>}
+  </section>
+  <div className="fr-inbox-filters"><label>Show requests<select aria-label="Request assignment" value={filter} onChange={e=>setFilter(e.target.value)}><option value="mine">Assigned to me</option><option value="active">All active requests I can access</option><option value="all">All requests I can access</option></select></label><label>Review<select aria-label="Review requests" value={review} onChange={e=>setReview(e.target.value)}><option value="">All reviews</option>{works.map(work=><option key={work.id} value={work.id}>{work.title}</option>)}</select></label></div>
+  {loading?<Loading text="Loading assigned requests"/>:<div className="fr-request-layout"><section className="fr-request-list" aria-label="Assigned work"><h2>{filter==='mine'?'Assigned to me':'Requests'}</h2>{items.map(({work,task})=><button key={work.id+':'+task.id} className="fr-request-item" disabled={pending} aria-current={selected===work.id+':'+task.id?'page':undefined} onClick={()=>onOpen(work,task.id)}><strong>{task.title}</strong><small>{work.title}</small><span>{task.active===false?'Withdrawn':statusLabel(task.status)} · {actorLabel(task.owner_actor_id,work)}</span>{task.due_at&&<small>Due {readableDate(task.due_at)}</small>}<span>View request →</span></button>)}{!items.length&&<div className="fr-empty"><h3>{works.length?'No requests match this view':'No requests to show'}</h3><p>{filter==='mine'?'No assigned work in this view. You can also show all requests you have access to.':'Requests appear here when they are shared with you.'}</p></div>}</section><section className="fr-request-detail">{children??<div className="fr-panel"><h2>Open a request to respond</h2><p>See the question, attach evidence or send a reply. Responding keeps the request open until its check or authorised review is complete.</p></div>}</section></div>}
+ </>;
+}
