@@ -6,8 +6,6 @@ The idea came from interviews with fund managers, accountants and account manage
 
 **[Watch the demo](https://drive.google.com/file/d/1PqvqqFrLSXyXixYrqbaN-kVW5u1vsAiP/view?usp=sharing)** · 4 minutes 53 seconds
 
-**[Open the hosted UI preview](https://closegraph.vercel.app)** · Explore the interface in Storybook. For uploads and processing, run the application locally below.
-
 ## Try it locally
 
 You’ll need **macOS**, **Docker Desktop** running, **uv**, **Python 3.12** and **Node.js 20.19+**.
