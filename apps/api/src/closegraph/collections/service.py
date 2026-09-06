@@ -1,5 +1,6 @@
 """Versioned collection workflow. Parsers propose; people accept; code transforms."""
-from .presentation import actor_name
+from .presentation import actor_name, canonical_actor
+from .account_migration import renamed_metadata
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -139,7 +140,7 @@ class CollectionServices(FundReviewMixin, ReconciliationMixin, CollaborationMixi
 
     def history(self, identity, actor):
         with self._locked(identity,actor,'history') as (session,row,state):
-            return [{'version':r.version,'actor_id':r.actor_id,'event':r.event_type,'detail':r.detail,'at':r.created_at.isoformat()} for r in session.scalars(select(CollectionRevisionRow).where(CollectionRevisionRow.collection_id==identity).order_by(CollectionRevisionRow.version)).all()]
+            return [{'version':r.version,'actor_id':canonical_actor(r.actor_id),'event':r.event_type,'detail':renamed_metadata(r.detail),'at':r.created_at.isoformat()} for r in session.scalars(select(CollectionRevisionRow).where(CollectionRevisionRow.collection_id==identity).order_by(CollectionRevisionRow.version)).all()]
 
     def rows(self, identity, actor, dataset_id, offset=0, limit=100, row_id=None):
         with self._locked(identity,actor,'inspect') as (_,_,state):

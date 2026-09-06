@@ -28,7 +28,8 @@ ENV_KEYS = {
     "CLOSEGRAPH_FUND_MANAGER_PASSWORD", "CLOSEGRAPH_INVESTOR_PASSWORD", "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN",
     "COMPOSE_PROJECT_NAME", "CLOSEGRAPH_POSTGRES_IMAGE", "CLOSEGRAPH_POSTGRES_PORT",
     "POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "CLOSEGRAPH_DATABASE_URL",
-    "CLOSEGRAPH_PREPARER_PASSWORD", "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR",
+    "CLOSEGRAPH_PREPARER_PASSWORD", "CLOSEGRAPH_REVIEWER_PASSWORD",
+    "CLOSEGRAPH_ACCOUNTANT_PASSWORD", "CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD", "CLOSEGRAPH_DATA_DIR",
 }
 SYSTEM_READS = (
     "/System", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/usr/lib", "/usr/libexec",
@@ -148,8 +149,8 @@ class LocalRuntime:
                 "POSTGRES_PASSWORD": database_password,
                 "CLOSEGRAPH_DATABASE_URL": "postgresql+psycopg://closegraph:" + quote(database_password, safe="") +
                                          "@127.0.0.1:55432/closegraph",
-                "CLOSEGRAPH_PREPARER_PASSWORD": secrets.token_urlsafe(18),
-                "CLOSEGRAPH_REVIEWER_PASSWORD": secrets.token_urlsafe(18),
+                "CLOSEGRAPH_ACCOUNTANT_PASSWORD": secrets.token_urlsafe(18),
+                "CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD": secrets.token_urlsafe(18),
                 "CLOSEGRAPH_FUND_MANAGER_PASSWORD": secrets.token_urlsafe(18),
                 "CLOSEGRAPH_INVESTOR_PASSWORD": secrets.token_urlsafe(18),
                 "CLOSEGRAPH_DATA_DIR": str(self.state_dir / "data"),
@@ -179,8 +180,18 @@ class LocalRuntime:
         if info.st_mode & 0o077:
             raise ValueError("Local environment must be private: chmod 600 the explicit env file")
         self.config = read_env(self.env_file)
-        required = {"POSTGRES_PASSWORD", "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_PREPARER_PASSWORD",
-                    "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR", "COMPOSE_PROJECT_NAME"}
+        renamed = False
+        for old, new in (("CLOSEGRAPH_PREPARER_PASSWORD", "CLOSEGRAPH_ACCOUNTANT_PASSWORD"),
+                         ("CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD")):
+            if old in self.config:
+                if new in self.config and self.config[new] != self.config[old]:
+                    raise ValueError("Conflicting account credentials; keep one password per account")
+                self.config[new] = self.config.pop(old)
+                renamed = True
+        if renamed:
+            self.env_file.write_text("".join(k + "=" + json.dumps(v) + "\n" for k, v in self.config.items()))
+        required = {"POSTGRES_PASSWORD", "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_ACCOUNTANT_PASSWORD",
+                    "CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD", "CLOSEGRAPH_DATA_DIR", "COMPOSE_PROJECT_NAME"}
         if any(not self.config.get(name) or self.config[name].startswith("replace-") for name in required):
             raise ValueError("Generate real local credentials with init or supply a complete private env file")
         database = urlparse(self.config["CLOSEGRAPH_DATABASE_URL"])
@@ -189,8 +200,8 @@ class LocalRuntime:
         port = int(self.config.get("CLOSEGRAPH_POSTGRES_PORT", "55432"))
         if not 1 <= port <= 65535 or (database.port or 5432) != port:
             raise ValueError("Database URL and PostgreSQL published port must match")
-        if self.config["CLOSEGRAPH_PREPARER_PASSWORD"] == self.config["CLOSEGRAPH_REVIEWER_PASSWORD"]:
-            raise ValueError("Preparer and reviewer must have distinct local passwords")
+        if self.config["CLOSEGRAPH_ACCOUNTANT_PASSWORD"] == self.config["CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD"]:
+            raise ValueError("Accountant and account manager must have distinct local passwords")
         data = Path(self.config["CLOSEGRAPH_DATA_DIR"])
         data = data if data.is_absolute() else self.project / data
         if not data.resolve().is_relative_to(self.state_dir.resolve()):
@@ -251,8 +262,8 @@ class LocalRuntime:
             environment.update(CHOKIDAR_USEPOLLING="true", CHOKIDAR_INTERVAL="500")
         if service != "ui":
             environment.update({name: self.config[name] for name in (
-                "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_PREPARER_PASSWORD",
-                "CLOSEGRAPH_REVIEWER_PASSWORD", "CLOSEGRAPH_DATA_DIR")})
+                "CLOSEGRAPH_DATABASE_URL", "CLOSEGRAPH_ACCOUNTANT_PASSWORD",
+                "CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD", "CLOSEGRAPH_DATA_DIR")})
             for name in ("CLOSEGRAPH_FUND_MANAGER_PASSWORD", "CLOSEGRAPH_INVESTOR_PASSWORD", "CLOSEGRAPH_PDF_MODE", "CLOSEGRAPH_PDF_CAPTURE_DIR", "CLOSEGRAPH_PDF_GATEWAY_URL", "CLOSEGRAPH_PDF_GATEWAY_TOKEN"):
                 if name in self.config:
                     environment[name] = self.config[name]
@@ -432,9 +443,23 @@ def self_test():
                 runtime.initialize()
                 self.assertEqual(runtime.env_file.read_bytes(), first)
                 self.assertEqual(runtime.env_file.stat().st_mode & 0o777, 0o600)
-                self.assertNotEqual(runtime.config["CLOSEGRAPH_PREPARER_PASSWORD"],
-                                    runtime.config["CLOSEGRAPH_REVIEWER_PASSWORD"])
+                self.assertNotEqual(runtime.config["CLOSEGRAPH_ACCOUNTANT_PASSWORD"],
+                                    runtime.config["CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD"])
                 self.assertEqual((runtime.control / "workspace.yaml").read_text().count("grpc_server:"), 1)
+
+        def test_old_password_configuration_moves_without_creating_aliases(self):
+            with tempfile.TemporaryDirectory() as directory:
+                runtime = LocalRuntime(directory)
+                runtime.initialize()
+                accountant = runtime.config.pop("CLOSEGRAPH_ACCOUNTANT_PASSWORD")
+                manager = runtime.config.pop("CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD")
+                runtime.config.update(CLOSEGRAPH_PREPARER_PASSWORD=accountant, CLOSEGRAPH_REVIEWER_PASSWORD=manager)
+                runtime.env_file.write_text("".join(k + "=" + json.dumps(v) + "\n" for k, v in runtime.config.items()))
+                runtime.load()
+                self.assertEqual(runtime.config["CLOSEGRAPH_ACCOUNTANT_PASSWORD"], accountant)
+                self.assertEqual(runtime.config["CLOSEGRAPH_ACCOUNT_MANAGER_PASSWORD"], manager)
+                self.assertNotIn("CLOSEGRAPH_PREPARER_PASSWORD", read_env(runtime.env_file))
+                self.assertNotIn("CLOSEGRAPH_REVIEWER_PASSWORD", read_env(runtime.env_file))
 
         def test_explicit_environment_requires_private_permissions(self):
             with tempfile.TemporaryDirectory() as directory:

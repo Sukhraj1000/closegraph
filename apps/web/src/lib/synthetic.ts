@@ -52,7 +52,7 @@ export function transition(state: SyntheticState, action: SyntheticAction): Synt
   const record = (title: string, note: string) => s.history.push({ version: s.version, title, note, actor: s.role === 'reviewer' ? 'Morgan Ellis (synthetic)' : 'Jamie Park (synthetic)', checks: snapshot(s).checks.map(c => ({ ...c })) });
   if (action.type === 'role') return { ...s, role: action.role };
   if (action.type === 'correct') {
-    if (s.role !== 'accountant' || !s.evidence || s.provider) throw new Error('An authorised preparer and available evidence are required.');
+    if (s.role !== 'accountant' || !s.evidence || s.provider) throw new Error('An authorised accountant and available evidence are required.');
     const value = normalizeAmount(action.value); if (!action.reason.trim()) throw new Error('Explain why you are changing the fee.');
     s.fee = value; s.version++; s.capitalFresh = false; s.stale = false; s.resolved = false; record('Correction saved by Jamie Park', action.reason.trim());
   }
@@ -60,15 +60,15 @@ export function transition(state: SyntheticState, action: SyntheticAction): Synt
     if (s.role !== 'accountant' || s.fee !== '60000.00' || !s.evidence || !s.dependency || s.provider || s.stale) throw new Error('Resolve the source and fee blockers before updating the statement.');
     s.version++; s.capitalFresh = true; record('Capital statement updated', 'Synthetic statement now agrees with NAV. Independent approval is still required.');
   }
-  if (action.type === 'receive') { if (s.role !== 'accountant') throw new Error('Only the preparer can add the example source.'); s.evidence = true; s.version++; record('Example fee agreement added', 'Adding evidence does not correct the fee mismatch.'); }
-  if (action.type === 'recheck') { if (s.role !== 'accountant' || s.provider) throw new Error('The preparer must resolve processing and recheck.'); s.stale = false; record('Current source version checked', 'Prior approval remains historical; new independent approval is required.'); }
+  if (action.type === 'receive') { if (s.role !== 'accountant') throw new Error('Only the accountant can add the example source.'); s.evidence = true; s.version++; record('Example fee agreement added', 'Adding evidence does not correct the fee mismatch.'); }
+  if (action.type === 'recheck') { if (s.role !== 'accountant' || s.provider) throw new Error('The accountant must resolve processing and recheck.'); s.stale = false; record('Current source version checked', 'Prior approval remains historical; new independent approval is required.'); }
   if (action.type === 'resolve') {
-    if (s.role !== 'reviewer' || s.scenario !== 'disagreement' || !snapshot(s).checks.every(c => c.status === 'PASS')) throw new Error('Independent reviewer and passed checks required.');
+    if (s.role !== 'reviewer' || s.scenario !== 'disagreement' || !snapshot(s).checks.every(c => c.status === 'PASS')) throw new Error('Independent account manager and passed checks required.');
     if (!action.note.trim()) throw new Error('Add evidence and a reason for accepting this reading.');
     s.resolved = true; record('Reader disagreement resolved by Morgan', `${action.note.trim()} Both original readings are retained. This is not an approval.`);
   }
   if (action.type === 'approve') {
-    if (s.role !== 'reviewer') throw new Error('An independent reviewer is required.');
+    if (s.role !== 'reviewer') throw new Error('An independent account manager is required.');
     if (!eligibleForReview(snapshot(s))) throw new Error('Resolve required checks, evidence and freshness before approval.');
     if (!action.attested) throw new Error('Attest that you inspected this exact version.');
     if (!action.note.trim()) throw new Error('Add a review note.');
